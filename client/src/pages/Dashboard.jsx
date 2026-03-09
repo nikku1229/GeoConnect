@@ -9,7 +9,7 @@ function Dashboard() {
   const [roomId, setRoomId] = useState("");
   const [isCreateRoomVisible, setIsCreateRoomVisible] = useState(false);
   const [isJoinRoomVisible, setIsJoinRoomVisible] = useState(false);
-  const { createRoom } = useRoomAuth();
+  const { createRoom, joinRoom } = useRoomAuth();
 
   return (
     <>
@@ -79,7 +79,12 @@ function Dashboard() {
               <button onClick={() => setIsJoinRoomVisible(false)}>X</button>
             </div>
 
-            <form>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                joinRoom(roomId, password);
+              }}
+            >
               <label htmlFor="room-id">Room ID</label>
               <input
                 id="room-id"

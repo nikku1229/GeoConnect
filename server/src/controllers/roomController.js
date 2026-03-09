@@ -47,7 +47,7 @@ const joinRoom = async (req, res) => {
       return res.status(400).json({ message: "Wrong password" });
     }
 
-    if (!room.members.includes(req.user._id)) {
+    if (!room.members.some((id) => id.toString() === req.user._id.toString())) {
       room.members.push(req.user._id);
       await room.save();
     }
@@ -73,8 +73,52 @@ const leaveRoom = async (req, res) => {
   res.json({ message: "Left room" });
 };
 
+// Get my rooms
+// const getMyRooms = async (req, res) => {
+//   try {
+//     const rooms = await Room.find({
+//       members: req.user._id,
+//     }).select("roomName roomId createdBy");
+
+//     res.json(rooms);
+//   } catch (err) {
+//     res.status(500).json(err.message);
+//   }
+// };
+
+const getMyRooms = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const rooms = await Room.find({
+      members: userId,
+    }).populate("members", "isOnline");
+
+    const formattedRooms = rooms.map((room) => {
+      const membersCount = room.members.length;
+
+      const activeCount = room.members.filter(
+        (member) => member.isOnline,
+      ).length;
+
+      return {
+        roomId: room.roomId,
+        roomName: room.roomName,
+        membersCount,
+        activeCount,
+      };
+    });
+
+    res.json(formattedRooms);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   createRoom,
   joinRoom,
   leaveRoom,
+  getMyRooms,
 };

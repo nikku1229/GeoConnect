@@ -19,8 +19,6 @@ module.exports = (io) => {
         isOnline: true,
       });
 
-      // console.log(`User ${userId} joined room ${roomId}`);
-
       io.to(roomId).emit("user_status", {
         userId,
         status: "online",
@@ -28,11 +26,8 @@ module.exports = (io) => {
     });
 
     // LOCATION UPDATE
-    // LOCATION UPDATE
     socket.on("location_update", async (data) => {
       const { userId, roomId, latitude, longitude, name } = data;
-
-      // console.log("SERVER RECEIVED LOCATION:", latitude, longitude);
 
       await Location.findOneAndUpdate(
         { userId, roomId },
@@ -49,11 +44,34 @@ module.exports = (io) => {
     });
 
     // DISCONNECT
-    socket.on("disconnect", async () => {
-      console.log("User disconnected");
+    // socket.on("disconnect", async () => {
+    //   console.log("User disconnected");
 
-      if (socket.roomId && socket.userId) {
-        io.to(socket.roomId).emit("user-disconnected", socket.userId);
+    //   if (socket.roomId && socket.userId) {
+    //     socket.to(socket.roomId).emit("user-disconnected", socket.userId);
+    //   }
+    // });
+    socket.on("disconnect", async () => {
+      console.log("User disconnected:", socket.id);
+
+      try {
+        if (socket.userId) {
+          // mark user offline
+          await User.findByIdAndUpdate(socket.userId, {
+            isOnline: false,
+          });
+        }
+
+        if (socket.roomId && socket.userId) {
+          io.to(socket.roomId).emit("user_status", {
+            userId: socket.userId,
+            status: "offline",
+          });
+
+          io.to(socket.roomId).emit("user-disconnected", socket.userId);
+        }
+      } catch (err) {
+        console.error("Disconnect error:", err);
       }
     });
   });
