@@ -10,6 +10,6 @@ router.post("/join", authMiddleware, roomController.joinRoom);
 
 router.get("/myrooms", authMiddleware, roomController.getMyRooms);
 
-router.delete("/:roomId", authMiddleware, roomController.leaveRoom);
+router.post("/:roomId/leave", authMiddleware, roomController.leaveRoom);
 
 module.exports = router;

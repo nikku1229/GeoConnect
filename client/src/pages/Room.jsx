@@ -1,22 +1,33 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { connectSocket, disconnectSocket } from "../socket/socket";
+import { useRoomAuth } from "../context/RoomAuth";
 import { shouldSendLocation } from "../utils/locationThrottle";
 import MapView from "../components/MapView";
 
 const Room = () => {
+  const { leaveRoom } = useRoomAuth();
   const { roomId } = useParams();
-
-  const [users, setUsers] = useState({});
-  const [myLocation, setMyLocation] = useState(null);
+  const navigate = useNavigate();
 
   const socketRef = useRef(null);
   const prevLocation = useRef(null);
 
+  const [users, setUsers] = useState({});
+  const [myLocation, setMyLocation] = useState(null);
+
   const userId = localStorage.getItem("userId");
   const username = localStorage.getItem("username");
 
+  const [message, setMessage] = useState("");
+  const [chat, setChat] = useState([]);
+
+  const [showUsers, setShowUsers] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
   useEffect(() => {
+    startLocationTracking();
+
     const socket = connectSocket();
     socketRef.current = socket;
 
@@ -27,15 +38,31 @@ const Room = () => {
     });
 
     socket.on("location_update", (data) => {
-      const { userId, latitude, longitude } = data;
+      const { userId, latitude, longitude, name } = data;
 
       setUsers((prev) => ({
         ...prev,
         [userId]: {
           lat: latitude,
           lng: longitude,
+          name,
+          online: true,
         },
       }));
+    });
+
+    socket.on("user_status", ({ userId, status }) => {
+      setUsers((prev) => ({
+        ...prev,
+        [userId]: {
+          ...prev[userId],
+          online: status === "online",
+        },
+      }));
+    });
+
+    socket.on("receive_message", (msg) => {
+      setChat((prev) => [...prev, msg]);
     });
 
     socket.on("user-disconnected", (userId) => {
@@ -46,10 +73,10 @@ const Room = () => {
       });
     });
 
-    startLocationTracking();
-
     return () => {
       socket.off("location_update");
+      socket.off("user_status");
+      socket.off("receive_message");
       socket.off("user-disconnected");
 
       disconnectSocket();
@@ -89,9 +116,130 @@ const Room = () => {
     );
   };
 
+  const sendMessage = () => {
+    if (!message) return;
+
+    socketRef.current.emit("send_message", {
+      roomId,
+      userId,
+      username,
+      message,
+    });
+
+    setMessage("");
+  };
+
+  const handleLeave = async () => {
+    try {
+      await leaveRoom(roomId);
+
+      if (socketRef.current) {
+        socketRef.current.emit("leave_room", { roomId, userId });
+        socketRef.current.disconnect();
+      }
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Error leaving room:", err);
+    }
+  };
+
+  const handleBack = () => {
+
+  if (socketRef.current) {
+    socketRef.current.disconnect();
+  }
+
+  navigate("/dashboard");
+
+};
+
+  // return (
+  //   <div style={{ height: "100vh", width: "100%" }}>
+  //     <MapView users={users} myLocation={myLocation} />
+  //   </div>
+  // );
+
   return (
-    <div style={{ height: "100vh", width: "100%" }}>
-      <MapView users={users} myLocation={myLocation} />
+    <div style={{ height: "100vh", width: "100%", position: "relative" }}>
+      <MapView users={users} myLocation={myLocation} selfId={userId} />
+
+      {/* TOP LEFT */}
+
+      <div className="room-top-left">
+        <button onClick={handleBack}>Back</button>
+
+        <div>Room: {roomId}</div>
+
+        <button onClick={() => navigator.clipboard.writeText(roomId)}>
+          Copy
+        </button>
+      </div>
+
+      {/* TOP RIGHT */}
+
+      <div className="room-top-right">
+        <div>
+          Active:
+          {Object.values(users).filter((u) => u?.online).length}/
+          {Object.keys(users).length}
+        </div>
+
+        <button onClick={handleLeave}>Leave</button>
+      </div>
+
+      {/* USER LIST */}
+
+      {showUsers && (
+        <div className="user-panel">
+          {Object.entries(users).map(([id, user]) => (
+            <div key={id} className="user-row">
+              {user.name}
+
+              {id === userId && " (You)"}
+
+              <span>{user.online ? "🟢" : "⚪"}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* CHAT */}
+
+      {showChat && (
+        <div className="chat-panel">
+          <div className="chat-messages">
+            {chat.map((msg, i) => (
+              <div key={i}>
+                <strong>{msg.username}</strong>
+
+                <p>{msg.message}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="chat-input">
+            <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Message..."
+            />
+
+            <button onClick={sendMessage}>Send</button>
+          </div>
+        </div>
+      )}
+
+      {/* BOTTOM LEFT */}
+
+      <button className="toggle-users" onClick={() => setShowUsers(!showUsers)}>
+        Users
+      </button>
+
+      {/* BOTTOM RIGHT */}
+
+      <button className="toggle-chat" onClick={() => setShowChat(!showChat)}>
+        Chat
+      </button>
     </div>
   );
 };

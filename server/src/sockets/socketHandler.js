@@ -74,5 +74,24 @@ module.exports = (io) => {
         console.error("Disconnect error:", err);
       }
     });
+
+    // CHAT MESSAGE
+    socket.on("send_message", (data) => {
+      const { roomId, userId, username, message } = data;
+
+      io.to(roomId).emit("receive_message", {
+        userId,
+        username,
+        message,
+        time: new Date(),
+      });
+    });
+
+    // LEAVE ROOM
+    socket.on("leave_room", async ({ roomId, userId }) => {
+      socket.leave(roomId);
+
+      io.to(roomId).emit("user-disconnected", userId);
+    });
   });
 };

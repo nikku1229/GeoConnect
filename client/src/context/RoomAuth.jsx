@@ -36,8 +36,17 @@ export const RoomAuthProvider = ({ children }) => {
     }
   };
 
+  const leaveRoom = async (roomId) => {
+    try {
+      await API.post(`/rooms/${roomId}/leave`);
+    } catch (err) {
+      console.error("Leave room error:", err);
+      alert("Failed to leave room");
+    }
+  };
+
   return (
-    <RoomAuthContext.Provider value={{ createRoom, joinRoom }}>
+    <RoomAuthContext.Provider value={{ createRoom, joinRoom, leaveRoom }}>
       {children}
     </RoomAuthContext.Provider>
   );
