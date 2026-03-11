@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
+import AddIcon from "../assets/AddIcon.svg";
 
 function Home() {
   const { user } = useAuth();
@@ -9,25 +10,28 @@ function Home() {
 
   return (
     <>
-      <Header />
-      <div className="home-container">
-        <h1>GeoConnect</h1>
+      <div className="container">
+        <Header />
+        <div className="home-container">
+          <h1>
+            Geo<span>Connect</span>
+          </h1>
 
-        <p>
-          Share your live location with family & friends. Create private rooms,
-          track distances, and stay connected on every trip.
-        </p>
+          <p>
+            Share your live location with family & friends. <br /> Create
+            private rooms, track distances, and stay connected on every trip.
+          </p>
 
-        <Link to="/login">
           <button
             className="secondary-btn"
             onClick={() => {
               user ? navigate("/dashboard") : navigate("/login");
             }}
           >
+            <img src={AddIcon} alt="Add" />
             Get Started
           </button>
-        </Link>
+        </div>
       </div>
     </>
   );

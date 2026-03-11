@@ -1,5 +1,8 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import LocationIcon from "../assets/LocationIcon.svg";
+import UserIcon from "../assets/UserIcon.svg";
+import OutIcon from "../assets/OutIcon.svg";
 
 function Header() {
   const { user, logout } = useAuth();
@@ -10,30 +13,43 @@ function Header() {
     <>
       <header>
         <div className="header-container">
-          <h2>GeoConnect</h2>
+          <div className="logo">
+            <img src={LocationIcon} alt="Logo" />
+            <Link to="/">
+              <h2>
+                Geo<span>Connect</span>
+              </h2>
+            </Link>
+          </div>
           <div className="header-btn">
             {user && (
-              <span style={{ marginRight: "20px" }}>
-                Hi, {localStorage.getItem("username")}
-              </span>
+              <p className="user-name">
+                Hi, <span>{localStorage.getItem("username")}</span>
+              </p>
             )}
+
             {user ? (
               <>
                 {location.pathname === "/" ? (
                   <>
                     <button
-                      className="primary-btn"
+                      className="primary-btn dashboard-btn"
                       onClick={() => {
                         navigate("/dashboard");
                       }}
                     >
+                      <img src={UserIcon} alt="DashBoard" />
                       DashBoard
                     </button>
                   </>
                 ) : (
                   <>
-                    <button className="primary-btn" onClick={logout}>
-                      SignOut
+                    <button
+                      className="primary-btn sign-out-btn"
+                      onClick={logout}
+                    >
+                      <img src={OutIcon} alt="Logout" />
+                      Sign out
                     </button>
                   </>
                 )}
@@ -41,10 +57,11 @@ function Header() {
             ) : (
               <>
                 <button
-                  className="primary-btn"
+                  className="primary-btn sign-in-btn"
                   onClick={() => navigate("/login")}
                 >
-                  SignIn
+                  <img src={UserIcon} alt="Login" />
+                  Sign In
                 </button>
               </>
             )}
