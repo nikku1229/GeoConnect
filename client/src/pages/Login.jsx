@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
+import LocationIcon from "../assets/LocationIcon.svg";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -29,25 +30,47 @@ function Login() {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
+    <div className="user-form-container">
+      <div className="form-title">
+        <div className="title">
+          <img src={LocationIcon} alt="Logo" />
+          <Link to="/">
+            <h1>
+              Geo<span>Connect</span>
+            </h1>
+          </Link>
+        </div>
+        <p>Welcome back! Sign in to continue.</p>
+      </div>
 
       <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          required
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          required
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <button type="submit">Login</button>
+        <div className="field">
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="you@example.com"
+            required
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="******"
+            required
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <Link to="/forgot-password">Forgot Password?</Link>
+        <button type="submit" className="secondary-btn">
+          Sign In
+        </button>
+        <p>
+          Don't have an account? <Link to="/register">Sign up</Link>
+        </p>
       </form>
     </div>
   );
