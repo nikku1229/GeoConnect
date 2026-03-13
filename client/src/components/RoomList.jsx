@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { getSocket } from "../socket/socket";
+import RoomUserIcon from "../assets/RoomUserIcon.svg";
+import DoubleArrowIcon from "../assets/DoubleArrowIcon.svg";
+import AlertIcon from "../assets/AlertIcon.svg";
 
 function RoomList() {
   const [rooms, setRooms] = useState([]);
@@ -16,10 +19,6 @@ function RoomList() {
     }
   };
 
-  // useEffect(() => {
-  //   fetchRooms();
-  // }, []);
-
   useEffect(() => {
     fetchRooms();
     const socket = getSocket();
@@ -33,36 +32,53 @@ function RoomList() {
     };
   }, []);
 
-  if (rooms.length === 0) {
-    return <p style={{ textAlign: "center" }}>No rooms joined yet</p>;
-  }
-
   return (
     <div className="room-list-container">
-      {rooms.map((room) => (
-        <div
-          key={room.roomId}
-          className="room-card"
-          onClick={() => navigate(`/room/${room.roomId}`)}
-        >
-          <div className="room-avatar">
-            {room.roomName?.charAt(0).toUpperCase()}
+      {rooms.length === 0 ? (
+        <>
+          <div className="empty-container">
+            <img src={AlertIcon} alt="Empty" />
+            <p>You haven't joined any rooms yet.</p>
           </div>
+        </>
+      ) : (
+        <>
+          {rooms.map((room) => (
+            <div
+              key={room.roomId}
+              className="room-card"
+              onClick={() => navigate(`/room/${room.roomId}`)}
+            >
+              <div className="room-details">
+                <div className="room-avatar">
+                  {room.roomName?.charAt(0).toUpperCase()}
+                </div>
 
-          <div className="room-info">
-            <h3>{room.roomName}</h3>
+                <div className="room-info">
+                  <h3>{room.roomName}</h3>
+                  <div className="room-stats">
+                    <p>
+                      <span>
+                        <img src={RoomUserIcon} alt="member" />
+                      </span>{" "}
+                      <span>Members: {room.membersCount || 0}</span>
+                    </p>
+                    <p>
+                      <span className="active-indicator"></span>{" "}
+                      <span>Active: {room.activeCount || 0}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-            <p className="room-code">
-              Code: <strong>{room.roomId}</strong>
-            </p>
-
-            <div className="room-stats">
-              <span>👥 Members: {room.membersCount || 0}</span>
-              <span>🟢 Active: {room.activeCount || 0}</span>
+              <div className="room-code-info">
+                <p className="room-code">{room.roomId}</p>
+                <img src={DoubleArrowIcon} alt="Enter" />
+              </div>
             </div>
-          </div>
-        </div>
-      ))}
+          ))}
+        </>
+      )}
     </div>
   );
 }
