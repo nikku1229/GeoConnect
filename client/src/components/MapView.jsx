@@ -27,12 +27,12 @@ const createAvatarIcon = (name, color) => {
         color:white;
         font-weight:bold;
         font-size:16px;
-        border:3px solid white;
+        border:2px solid white;
       ">
         ${firstLetter}
       </div>
     `,
-    className: "",
+    className: "map-avatar",
   });
 };
 
@@ -75,6 +75,7 @@ const MapView = ({ users, myLocation, selfId }) => {
 
   return (
     <MapContainer
+      className="map"
       center={center}
       zoom={15}
       style={{ height: "100%", width: "100%" }}

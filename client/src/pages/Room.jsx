@@ -1,8 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Activity } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { connectSocket, disconnectSocket } from "../socket/socket";
 import { useRoomAuth } from "../context/RoomAuth";
 import { shouldSendLocation } from "../utils/locationThrottle";
+import LeftArrowIcon from "../assets/LeftArrowIcon.svg";
+import OutIcon from "../assets/OutIcon.svg";
+import ChatIcon from "../assets/ChatIcon.svg";
+import RoomUserIcon from "../assets/RoomUserIcon.svg";
 import MapView from "../components/MapView";
 
 const Room = () => {
@@ -144,52 +148,101 @@ const Room = () => {
   };
 
   const handleBack = () => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
 
-  if (socketRef.current) {
-    socketRef.current.disconnect();
-  }
-
-  navigate("/dashboard");
-
-};
-
-  // return (
-  //   <div style={{ height: "100vh", width: "100%" }}>
-  //     <MapView users={users} myLocation={myLocation} />
-  //   </div>
-  // );
+    navigate("/dashboard");
+  };
 
   return (
-    <div style={{ height: "100vh", width: "100%", position: "relative" }}>
+    <div className="room-container">
       <MapView users={users} myLocation={myLocation} selfId={userId} />
 
-      {/* TOP LEFT */}
+      <div className="room-blocks top-left">
+        <button onClick={handleBack} className="primary-btn">
+          <img src={LeftArrowIcon} alt="Back" />
+        </button>
 
-      <div className="room-top-left">
-        <button onClick={handleBack}>Back</button>
+        <div
+          className="room-id"
+          onClick={() => navigator.clipboard.writeText(roomId)}
+        >
+          {roomId}
+        </div>
+      </div>
 
-        <div>Room: {roomId}</div>
+      <div className="room-blocks top-right">
+        <div className="detail">
+          <div className="indicator"></div>
+          {Object.values(users).filter((u) => u?.online).length}/
+          {Object.keys(users).length} online
+        </div>
 
-        <button onClick={() => navigator.clipboard.writeText(roomId)}>
-          Copy
+        <button onClick={handleLeave} className="primary-btn">
+          <img src={OutIcon} alt="Leave" />
         </button>
       </div>
 
-      {/* TOP RIGHT */}
-
-      <div className="room-top-right">
-        <div>
-          Active:
-          {Object.values(users).filter((u) => u?.online).length}/
-          {Object.keys(users).length}
-        </div>
-
-        <button onClick={handleLeave}>Leave</button>
+      <div
+        className="room-blocks bottom-left"
+        onClick={() => {
+          setShowUsers(!showUsers);
+          if (showChat) setShowChat(!showChat);
+        }}
+      >
+        <img src={RoomUserIcon} alt="Members" />
+        Members
       </div>
 
-      {/* USER LIST */}
+      <div
+        className="room-blocks bottom-right"
+        onClick={() => {
+          setShowChat(!showChat);
+          if (showUsers) setShowUsers(!showUsers);
+        }}
+      >
+        <img src={ChatIcon} alt="Open Chat" /> Chat
+      </div>
 
-      {showUsers && (
+      <Activity mode={showUsers ? "visible" : "hidden"}>
+        <div className="room-blocks members-list">
+          {Object.entries(users).map(([id, user]) => (
+            <div key={id} className="user-row">
+              {user.name}
+
+              {id === userId && " (You)"}
+
+              <span>{user.online ? "🟢" : "⚪"}</span>
+            </div>
+          ))}
+        </div>
+      </Activity>
+
+      <Activity mode={showChat ? "visible" : "hidden"}>
+        <div className="room-blocks chats">
+          <div className="chat-messages">
+            {chat.map((msg, i) => (
+              <div key={i}>
+                <strong>{msg.username}</strong>
+                <p>{msg.message}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="chat-input">
+            <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Message..."
+            />
+
+            <button onClick={sendMessage}>Send</button>
+          </div>
+        </div>
+      </Activity>
+
+      {/* {showUsers && (
         <div className="user-panel">
           {Object.entries(users).map(([id, user]) => (
             <div key={id} className="user-row">
@@ -202,8 +255,6 @@ const Room = () => {
           ))}
         </div>
       )}
-
-      {/* CHAT */}
 
       {showChat && (
         <div className="chat-panel">
@@ -227,112 +278,9 @@ const Room = () => {
             <button onClick={sendMessage}>Send</button>
           </div>
         </div>
-      )}
-
-      {/* BOTTOM LEFT */}
-
-      <button className="toggle-users" onClick={() => setShowUsers(!showUsers)}>
-        Users
-      </button>
-
-      {/* BOTTOM RIGHT */}
-
-      <button className="toggle-chat" onClick={() => setShowChat(!showChat)}>
-        Chat
-      </button>
+      )} */}
     </div>
   );
 };
 
 export default Room;
-
-// import { useState, useEffect } from "react";
-// import { useParams } from "react-router-dom";
-// import socket from "../socket/socket";
-// import LiveMap from "../components/LiveMap";
-// import UserSidebar from "../components/UserSidebar";
-
-// function Room() {
-//   const [users, setUsers] = useState({});
-//   const { roomId } = useParams();
-
-//   const copyRoomLink = () => {
-//     const link = window.location.href;
-
-//     navigator.clipboard.writeText(link);
-
-//     alert("Room link copied!");
-//   };
-
-//   useEffect(() => {
-//     const userId = localStorage.getItem("userId");
-//     const username = localStorage.getItem("username") || "User";
-
-//     socket.emit("join_room", {
-//       roomId,
-//       userId,
-//       username,
-//     });
-//   }, [roomId]);
-
-//   useEffect(() => {
-//     const userId = localStorage.getItem("userId");
-//     const username = localStorage.getItem("username") || "User";
-
-//     navigator.geolocation.watchPosition((position) => {
-//       const latitude = position.coords.latitude;
-//       const longitude = position.coords.longitude;
-
-//       socket.emit("location_update", {
-//         userId,
-//         roomId,
-//         latitude,
-//         longitude,
-//         name: username,
-//       });
-//     });
-//   }, [roomId]);
-
-//   useEffect(() => {
-//     socket.on("location_update", (data) => {
-//       setUsers((prev) => ({
-//         ...prev,
-//         [data.userId]: {
-//           lat: data.latitude,
-//           lng: data.longitude,
-//           name: data.name,
-//         },
-//       }));
-//     });
-
-//     socket.on("user-disconnected", (userId) => {
-//       setUsers((prev) => {
-//         const updated = { ...prev };
-//         delete updated[userId];
-//         return updated;
-//       });
-//     });
-
-//     return () => {
-//       socket.off("location_update");
-//       socket.off("user-disconnected");
-//     };
-//   }, []);
-
-//   return (
-//     <div style={{ display: "flex" }}>
-//       <UserSidebar users={users} />
-
-//       <div style={{ flex: 1 }}>
-//         <h1>Room ID: {roomId}</h1>
-//         <button onClick={copyRoomLink}>Copy Invite Link</button>
-
-//         <h3>Users in Room: {Object.keys(users).length}</h3>
-
-//         <LiveMap users={users} />
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Room;

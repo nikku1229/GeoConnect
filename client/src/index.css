@@ -219,88 +219,6 @@ header {
   }
 }
 
-.room-top-left {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  z-index: 1000;
-}
-
-.room-top-right {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  z-index: 1000;
-}
-
-.toggle-users {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  z-index: 1000;
-}
-
-.toggle-chat {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-
-.user-panel {
-  position: absolute;
-  bottom: 70px;
-  left: 20px;
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  width: 220px;
-  max-height: 300px;
-  overflow: auto;
-  z-index: 1000;
-}
-
-.chat-panel {
-  position: absolute;
-  bottom: 70px;
-  right: 20px;
-  background: white;
-  width: 300px;
-  height: 350px;
-  display: flex;
-  flex-direction: column;
-  border-radius: 10px;
-  z-index: 1000;
-}
-
-.chat-messages {
-  flex: 1;
-  overflow: auto;
-  padding: 10px;
-}
-
-.chat-input {
-  display: flex;
-  border-top: 1px solid #eee;
-}
-
-.chat-input input {
-  flex: 1;
-  border: none;
-  padding: 8px;
-}
-
-.chat-input button {
-  border: none;
-  padding: 8px 10px;
-}
-
 .user-form-container {
   width: 100%;
   height: 100vh;
@@ -556,6 +474,7 @@ header {
     p {
       font-size: 1.5rem;
       color: var(--l-gray);
+      text-align: center;
     }
   }
 }
@@ -662,6 +581,110 @@ header {
   }
 }
 
+.room-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-width: 1440px;
+  z-index: 0;
+
+  .room-blocks {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--l-gray);
+    padding: 15px;
+    gap: 10px;
+    background-color: var(--primary-color);
+    z-index: 2;
+    border-radius: 15px;
+
+    button {
+      border: none;
+      padding: 0px;
+    }
+  }
+
+  .top-left {
+    top: 30px;
+    left: 30px;
+
+    .room-id {
+      cursor: pointer;
+    }
+  }
+
+  .top-right {
+    top: 30px;
+    right: 30px;
+    gap: 20px;
+
+    .detail {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--secondary-color);
+    }
+
+    button img {
+      filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(100deg)
+        brightness(200%) contrast(100%);
+    }
+  }
+
+  .bottom-left {
+    bottom: 30px;
+    left: 30px;
+    cursor: pointer;
+    font-size: 1.2rem;
+
+    img {
+      width: 25px;
+      height: 25px;
+      filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(210deg)
+        brightness(200%) contrast(100%);
+    }
+  }
+
+  .bottom-right {
+    bottom: 30px;
+    right: 30px;
+    cursor: pointer;
+    font-size: 1.2rem;
+
+    img {
+      width: 25px;
+      height: 25px;
+    }
+  }
+
+  .members-list {
+    left: 30px;
+    bottom: 100px;
+  }
+
+  .chats {
+    bottom: 100px;
+    right: 30px;
+  }
+}
+
+.map {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
 @media screen and (max-width: 1024px) {
   .home-container h1 {
     font-size: 3rem;
@@ -702,7 +725,6 @@ header {
     button.create,
     button.join {
       font-size: 16px !important;
-      width: 150px !important;
 
       img {
         width: 20px !important;
@@ -718,14 +740,19 @@ header {
     align-items: start !important;
   }
 
-  .room-card{
+  .room-card {
     padding: 15px !important;
   }
 
-  .room-details{
-    flex-direction: column;
-    align-items: flex-start !important;
+  .room-details {
+    flex-direction: row;
+    align-items: center !important;
     gap: 10px !important;
+  }
+
+  .room-stats {
+    flex-direction: column;
+    gap: 5px !important;
   }
 }
 
@@ -752,6 +779,21 @@ header {
     }
   }
 
+  .room-btns {
+    width: 100%;
+  }
+
+  button.create,
+  button.join {
+    font-size: 16px !important;
+    width: 100% !important;
+
+    img {
+      width: 20px !important;
+      height: 20px !important;
+    }
+  }
+
   .home-container h1 {
     font-size: 2rem;
   }
@@ -766,5 +808,31 @@ header {
 
   .create-room-section {
     padding: 0px 20px;
+  }
+
+  .header-container {
+    padding: 20px 10px !important;
+  }
+
+  .room-section .room-btns {
+    flex-direction: column;
+  }
+
+  .empty-container {
+    img {
+      width: 70px;
+      height: 70px;
+    }
+  }
+
+  .room-code-info .room-code {
+    font-size: 16px !important;
+  }
+}
+
+@media screen and (max-width: 370px) {
+  .room-details {
+    flex-direction: column;
+    align-items: start !important;
   }
 }
