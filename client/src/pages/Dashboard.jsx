@@ -57,20 +57,27 @@ function Dashboard() {
                   createRoom(roomName, password);
                 }}
               >
-                <label htmlFor="room-name">Room Name</label>
-                <input
-                  id="room-name"
-                  placeholder="eg. Trip & Family"
-                  onChange={(e) => setRoomName(e.target.value)}
-                />
-                <label htmlFor="password">Room Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="Set password for the room"
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button type="submit">Create Room</button>
+                <div className="field">
+                  <label htmlFor="room-name">Room Name</label>
+                  <input
+                    id="room-name"
+                    placeholder="eg. Trip & Family"
+                    onChange={(e) => setRoomName(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="password">Room Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="Set password for the room"
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <button type="submit" className="secondary-btn">
+                  <img src={AddIcon} alt="Create" />
+                  Create Room
+                </button>
               </form>
             </div>
           </section>
@@ -79,7 +86,7 @@ function Dashboard() {
         <Activity mode={isJoinRoomVisible ? "visible" : "hidden"}>
           <section className="join-room-section">
             <div className="join-room-form">
-              <div className="room-form-">
+              <div className="room-form-head">
                 <h3>Join Room</h3>
                 <button onClick={() => setIsJoinRoomVisible(false)}>X</button>
               </div>
@@ -90,20 +97,27 @@ function Dashboard() {
                   joinRoom(roomId, password);
                 }}
               >
-                <label htmlFor="room-id">Room ID</label>
-                <input
-                  id="room-id"
-                  placeholder="eg. 1234aa"
-                  onChange={(e) => setRoomId(e.target.value)}
-                />
-                <label htmlFor="password">Room Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="Enter Room Password"
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button type="submit">Join Room</button>
+                <div className="field">
+                  <label htmlFor="room-id">Room ID</label>
+                  <input
+                    id="room-id"
+                    placeholder="eg. 1234aa"
+                    onChange={(e) => setRoomId(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="password">Room Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="Enter Room Password"
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <button type="submit" className="secondary-btn">
+                  <img src={EnterIcon} alt="Join" />
+                  Join Room
+                </button>
               </form>
             </div>
           </section>

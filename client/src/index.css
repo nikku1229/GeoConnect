@@ -559,3 +559,212 @@ header {
     }
   }
 }
+
+.create-room-section,
+.join-room-section {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .create-room-form,
+  .join-room-form {
+    background-color: var(--form-bg);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 30px 30px;
+    width: 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+
+    .room-form-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h3 {
+        font-size: 1.3rem;
+      }
+
+      button {
+        width: 20px;
+        height: 20px;
+        background-color: transparent;
+        border: none;
+        color: var(--light);
+        font-size: 16px;
+        border-radius: 50%;
+        cursor: pointer;
+
+        &:hover {
+          color: var(--l-gray);
+        }
+      }
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        label {
+          font-size: 16px;
+          color: var(--light);
+        }
+
+        input {
+          background-color: var(--input-bg);
+          border: none;
+          padding: 10px;
+          color: var(--light);
+          font-size: 18px;
+          border-radius: 8px;
+
+          &::placeholder {
+            color: var(--l-gray);
+            font-size: 14px;
+          }
+        }
+      }
+
+      button {
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        border-radius: 10px;
+
+        &:hover {
+          box-shadow:
+            1px 1px 5px var(--s-shadow-color),
+            -1px -1px 5px var(--s-shadow-color);
+        }
+      }
+    }
+  }
+
+  .join-room-form form button img {
+    filter: invert(100%) sepia(100%) grayscale(100%) brightness(200%);
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .home-container h1 {
+    font-size: 3rem;
+  }
+
+  .dashboard-container {
+    padding: 30px 20px;
+  }
+
+  .room-section,
+  .room-list-container {
+    width: 100% !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .home-container {
+    padding: 0px 20px;
+
+    p {
+      font-size: 16px;
+    }
+  }
+
+  .home-container h1 {
+    font-size: 2.4rem;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .room-section {
+    h2 {
+      font-size: 1.3rem !important;
+    }
+
+    button.create,
+    button.join {
+      font-size: 16px !important;
+      width: 150px !important;
+
+      img {
+        width: 20px !important;
+        height: 20px !important;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .room-section {
+    flex-direction: column;
+    align-items: start !important;
+  }
+
+  .room-card{
+    padding: 15px !important;
+  }
+
+  .room-details{
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+}
+
+@media screen and (max-width: 460px) {
+  .logo {
+    img {
+      width: 25px !important;
+      height: 25px !important;
+    }
+
+    a h2 {
+      font-size: 18px !important;
+    }
+  }
+
+  .home-container button {
+    font-size: 16px !important;
+    width: 170px;
+    height: 45px;
+
+    img {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .home-container h1 {
+    font-size: 2rem;
+  }
+
+  .user-form-container {
+    padding: 0px 20px;
+  }
+
+  .user-form-container form {
+    width: 100%;
+  }
+
+  .create-room-section {
+    padding: 0px 20px;
+  }
+}
