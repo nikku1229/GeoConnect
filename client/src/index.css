@@ -179,6 +179,9 @@ header {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: top;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .home-container {
@@ -586,7 +589,6 @@ header {
   width: 100vw;
   height: 100vh;
   max-width: 1440px;
-  z-index: 0;
 
   .room-blocks {
     position: absolute;
@@ -597,7 +599,7 @@ header {
     padding: 15px;
     gap: 10px;
     background-color: var(--primary-color);
-    z-index: 2;
+    z-index: 1;
     border-radius: 15px;
 
     button {
@@ -668,6 +670,84 @@ header {
   .members-list {
     left: 30px;
     bottom: 100px;
+    flex-direction: column;
+    gap: 20px;
+    height: 400px;
+    width: 300px;
+    padding: 20px;
+    justify-content: start;
+    align-items: self-start;
+
+    .member-block-title {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+
+      .close {
+        cursor: pointer;
+
+        &:hover {
+          color: var(--l-gray);
+        }
+      }
+    }
+
+    .member-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      overflow-y: scroll;
+      height: 100%;
+      scrollbar-width: none;
+
+      .member {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        .avatar-name {
+          display: flex;
+          gap: 15px;
+
+          .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            img {
+              filter: invert(100%) sepia(100%) grayscale(100%) brightness(200%);
+            }
+          }
+
+          .name {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+
+            span {
+              font-size: 10px;
+            }
+          }
+        }
+      }
+
+      .kick {
+        img {
+          filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(100deg)
+            brightness(200%) contrast(100%);
+          cursor: pointer;
+        }
+      }
+    }
   }
 
   .chats {
@@ -676,8 +756,14 @@ header {
   }
 }
 
+.seperator {
+  border-bottom: 1px solid var(--l-gray);
+  width: 100%;
+  height: 1px;
+}
+
 .map {
-  position: relative;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100vw;

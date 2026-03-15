@@ -7,6 +7,7 @@ import LeftArrowIcon from "../assets/LeftArrowIcon.svg";
 import OutIcon from "../assets/OutIcon.svg";
 import ChatIcon from "../assets/ChatIcon.svg";
 import RoomUserIcon from "../assets/RoomUserIcon.svg";
+import UserIcon from "../assets/UserIcon.svg";
 import MapView from "../components/MapView";
 
 const Room = () => {
@@ -156,93 +157,122 @@ const Room = () => {
   };
 
   return (
-    <div className="room-container">
+    <>
       <MapView users={users} myLocation={myLocation} selfId={userId} />
+      <div className="room-container">
+        <div className="room-blocks top-left">
+          <button onClick={handleBack} className="primary-btn">
+            <img src={LeftArrowIcon} alt="Back" />
+          </button>
 
-      <div className="room-blocks top-left">
-        <button onClick={handleBack} className="primary-btn">
-          <img src={LeftArrowIcon} alt="Back" />
-        </button>
+          <div
+            className="room-id"
+            onClick={() => navigator.clipboard.writeText(roomId)}
+          >
+            {roomId}
+          </div>
+        </div>
+
+        <div className="room-blocks top-right">
+          <div className="detail">
+            <div className="indicator"></div>
+            {Object.values(users).filter((u) => u?.online).length}/
+            {Object.keys(users).length} online
+          </div>
+
+          <button onClick={handleLeave} className="primary-btn">
+            <img src={OutIcon} alt="Leave" />
+          </button>
+        </div>
 
         <div
-          className="room-id"
-          onClick={() => navigator.clipboard.writeText(roomId)}
+          className="room-blocks bottom-left"
+          onClick={() => {
+            setShowUsers(!showUsers);
+            if (showChat) setShowChat(!showChat);
+          }}
         >
-          {roomId}
-        </div>
-      </div>
-
-      <div className="room-blocks top-right">
-        <div className="detail">
-          <div className="indicator"></div>
-          {Object.values(users).filter((u) => u?.online).length}/
-          {Object.keys(users).length} online
+          <img src={RoomUserIcon} alt="Members" />
+          Members
         </div>
 
-        <button onClick={handleLeave} className="primary-btn">
-          <img src={OutIcon} alt="Leave" />
-        </button>
-      </div>
+        <div
+          className="room-blocks bottom-right"
+          onClick={() => {
+            setShowChat(!showChat);
+            if (showUsers) setShowUsers(!showUsers);
+          }}
+        >
+          <img src={ChatIcon} alt="Open Chat" /> Chat
+        </div>
 
-      <div
-        className="room-blocks bottom-left"
-        onClick={() => {
-          setShowUsers(!showUsers);
-          if (showChat) setShowChat(!showChat);
-        }}
-      >
-        <img src={RoomUserIcon} alt="Members" />
-        Members
-      </div>
-
-      <div
-        className="room-blocks bottom-right"
-        onClick={() => {
-          setShowChat(!showChat);
-          if (showUsers) setShowUsers(!showUsers);
-        }}
-      >
-        <img src={ChatIcon} alt="Open Chat" /> Chat
-      </div>
-
-      <Activity mode={showUsers ? "visible" : "hidden"}>
-        <div className="room-blocks members-list">
-          {Object.entries(users).map(([id, user]) => (
-            <div key={id} className="user-row">
-              {user.name}
-
-              {id === userId && " (You)"}
-
-              <span>{user.online ? "🟢" : "⚪"}</span>
+        <Activity mode={showUsers ? "visible" : "hidden"}>
+          <div className="room-blocks members-list">
+            <div className="member-block-title">
+              <h3>Members</h3>
+              <strong
+                className="close"
+                onClick={() => {
+                  setShowUsers(!showUsers);
+                  if (showChat) setShowChat(!showChat);
+                }}
+              >
+                X
+              </strong>
             </div>
-          ))}
-        </div>
-      </Activity>
+            <div className="seperator"></div>
+            <div className="member-list">
+              {Object.entries(users).map(([id, user]) => (
+                <div key={id} className="member">
+                  <div className="avatar-name">
+                    <div className="avatar">
+                      <img src={UserIcon} alt="Img" />
+                    </div>
+                    <div className="name">
+                      {user.name} {user.name && id === userId ? "(You)" : ""}{" "}
+                      <span>
+                        {user.name && user.online
+                          ? "🟢"
+                          : user.name
+                            ? "⚪"
+                            : ""}
+                      </span>
+                    </div>
+                  </div>
 
-      <Activity mode={showChat ? "visible" : "hidden"}>
-        <div className="room-blocks chats">
-          <div className="chat-messages">
-            {chat.map((msg, i) => (
-              <div key={i}>
-                <strong>{msg.username}</strong>
-                <p>{msg.message}</p>
-              </div>
-            ))}
+                  <div className="kick">
+                    <img src={OutIcon} alt="kick" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+        </Activity>
 
-          <div className="chat-input">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Message..."
-            />
+        <Activity mode={showChat ? "visible" : "hidden"}>
+          <div className="room-blocks chats">
+            <div className="chat-messages">
+              {chat.map((msg, i) => (
+                <div key={i}>
+                  <strong>{msg.username}</strong>
+                  <p>{msg.message}</p>
+                </div>
+              ))}
+            </div>
 
-            <button onClick={sendMessage}>Send</button>
+            <div className="chat-input">
+              <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Message..."
+              />
+
+              <button onClick={sendMessage}>Send</button>
+            </div>
           </div>
-        </div>
-      </Activity>
+        </Activity>
 
-      {/* {showUsers && (
+        {/* {showUsers && (
         <div className="user-panel">
           {Object.entries(users).map(([id, user]) => (
             <div key={id} className="user-row">
@@ -279,7 +309,8 @@ const Room = () => {
           </div>
         </div>
       )} */}
-    </div>
+      </div>
+    </>
   );
 };
 

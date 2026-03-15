@@ -81,7 +81,7 @@ const MapView = ({ users, myLocation, selfId }) => {
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
-        attribution="OpenStreetMap"
+        attribution="FeatureMapByNikku1229"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
