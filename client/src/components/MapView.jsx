@@ -6,10 +6,24 @@ import {
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
-import { useEffect } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import "leaflet/dist/leaflet.css";
+import MarkerClusterGroup from "react-leaflet-cluster";
 
-const colors = ["#ff4d4f", "#1890ff", "#52c41a", "#faad14", "#722ed1"];
+const colors = [
+  "#740A03",
+  "#1B211A",
+  "#52c41a",
+  "#faad14",
+  "#722ed1",
+  "#C3110C",
+  "#132440",
+  "#2F5755",
+  "#090040",
+  "#320A6B",
+  "#27391C",
+  "#3C2A21",
+];
 
 const createAvatarIcon = (name, color) => {
   const firstLetter = name?.charAt(0)?.toUpperCase() || "?";
@@ -38,6 +52,7 @@ const createAvatarIcon = (name, color) => {
 
 const AutoCenter = ({ users }) => {
   const map = useMap();
+  const prevCount = useRef(0);
 
   useEffect(() => {
     const coords = Object.values(users)
@@ -46,7 +61,10 @@ const AutoCenter = ({ users }) => {
 
     if (coords.length === 0) return;
 
-    map.fitBounds(coords, { padding: [100, 100] });
+    if (prevCount.current !== coords.length) {
+      map.fitBounds(coords, { padding: [100, 100] });
+      prevCount.current = coords.length;
+    }
   }, [users]);
 
   return null;
@@ -71,7 +89,43 @@ const getDistance = (a, b) => {
 };
 
 const MapView = ({ users, myLocation, selfId }) => {
-  const center = myLocation || { lat: 20.5937, lng: 78.9629 };
+  const markerRefs = useRef({});
+
+  const firstUser = Object.values(users).find((u) => u.lat && u.lng);
+
+  const center = myLocation ||
+    (firstUser ? { lat: firstUser.lat, lng: firstUser.lng } : null) || {
+      lat: 28.6139,
+      lng: 77.209,
+    };
+
+  useEffect(() => {
+    Object.entries(users).forEach(([id, user]) => {
+      const marker = markerRefs.current[id];
+
+      if (marker && user.lat) {
+        const current = marker.getLatLng();
+        const target = L.latLng(user.lat, user.lng);
+
+        let i = 0;
+        const steps = 10;
+
+        const animate = () => {
+          i++;
+          const lat = current.lat + (target.lat - current.lat) * (i / steps);
+          const lng = current.lng + (target.lng - current.lng) * (i / steps);
+
+          marker.setLatLng([lat, lng]);
+
+          if (i < steps) {
+            requestAnimationFrame(animate);
+          }
+        };
+
+        animate();
+      }
+    });
+  }, [users]);
 
   return (
     <MapContainer
@@ -86,59 +140,56 @@ const MapView = ({ users, myLocation, selfId }) => {
       />
 
       <AutoCenter users={users} />
+      <MarkerClusterGroup
+        chunkedLoading
+        maxClusterRadius={50}
+        spiderfyOnMaxZoom={true}
+        showCoverageOnHover={false}
+      >
+        {Object.entries(users).map(([id, user], index) => {
+          if (!user?.lat) return null;
 
-      {Object.entries(users).map(([id, user], index) => {
-        if (!user?.lat) return null;
+          const icon = createAvatarIcon(
+            user.name,
+            colors[index % colors.length],
+          );
 
-        const icon = createAvatarIcon(user.name, colors[index % colors.length]);
+          let distance = "";
 
-        let distance = "";
+          if (selfId !== id && myLocation) {
+            distance =
+              getDistance(myLocation, {
+                lat: user.lat,
+                lng: user.lng,
+              }) + " km";
+          }
 
-        if (selfId !== id && myLocation) {
-          distance =
-            getDistance(myLocation, {
-              lat: user.lat,
-              lng: user.lng,
-            }) + " km";
-        }
+          return (
+            <Marker
+              key={id}
+              position={[user.lat, user.lng]}
+              icon={icon}
+              ref={(ref) => {
+                if (ref) {
+                  markerRefs.current[id] = ref;
+                } else {
+                  delete markerRefs.current[id];
+                }
+              }}
+            >
+              <Tooltip>
+                {user.name}
 
-        return (
-          <Marker key={id} position={[user.lat, user.lng]} icon={icon}>
-            <Tooltip>
-              {user.name}
+                {id === selfId && " (You)"}
 
-              {id === selfId && " (You)"}
-
-              {distance && ` • ${distance}`}
-            </Tooltip>
-          </Marker>
-        );
-      })}
+                {distance && ` • ${distance}`}
+              </Tooltip>
+            </Marker>
+          );
+        })}
+      </MarkerClusterGroup>
     </MapContainer>
   );
 };
 
 export default MapView;
-
-// import { MapContainer, TileLayer, Marker, Tooltip } from "react-leaflet";
-// import L from "leaflet";
-// import "leaflet/dist/leaflet.css";
-
-// const MapView = ({ users, myLocation }) => {
-//   const center = myLocation || { lat: 20.5937, lng: 78.9629 };
-
-//   return (
-//     <MapContainer center={center} zoom={15} style={{ height: "100%" }}>
-//       <TileLayer
-//         attribution="OpenStreetMap"
-//         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-//       />
-
-//       {Object.entries(users).map(([id, location]) => (
-//         <Marker key={id} position={[location.lat, location.lng]} />
-//       ))}
-//     </MapContainer>
-//   );
-// };
-
-// export default MapView;

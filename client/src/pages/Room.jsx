@@ -20,6 +20,7 @@ const Room = () => {
   const prevLocation = useRef(null);
 
   const [users, setUsers] = useState({});
+  const [creatorId, setCreatorId] = useState(null);
   const [myLocation, setMyLocation] = useState(null);
 
   const userId = localStorage.getItem("userId");
@@ -30,6 +31,9 @@ const Room = () => {
 
   const [showUsers, setShowUsers] = useState(false);
   const [showChat, setShowChat] = useState(false);
+
+  const isCreator = creatorId && creatorId === userId;
+  const watchIdRef = useRef(null);
 
   useEffect(() => {
     startLocationTracking();
@@ -79,18 +83,34 @@ const Room = () => {
       });
     });
 
+    socket.on("room_creator", ({ creatorId }) => {
+      setCreatorId(creatorId);
+    });
+
+    socket.on("user_kicked", () => {
+      alert("You were kicked from the room");
+
+      socketRef.current.disconnect();
+
+      navigate("/dashboard");
+    });
+
     return () => {
-      socket.off("location_update");
-      socket.off("user_status");
-      socket.off("receive_message");
-      socket.off("user-disconnected");
+      if (!socketRef.current) return;
+
+      socketRef.current.off("location_update");
+      socketRef.current.off("user_status");
+      socketRef.current.off("receive_message");
+      socketRef.current.off("user-disconnected");
+      socketRef.current.off("user_kicked");
+      socketRef.current.off("room_creator");
 
       disconnectSocket();
     };
   }, [roomId]);
 
   const startLocationTracking = () => {
-    navigator.geolocation.watchPosition(
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const newLocation = {
           lat: position.coords.latitude,
@@ -120,6 +140,23 @@ const Room = () => {
         timeout: 10000,
       },
     );
+
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+
+      if (!socketRef.current) return;
+
+      socketRef.current.off("location_update");
+      socketRef.current.off("user_status");
+      socketRef.current.off("receive_message");
+      socketRef.current.off("user-disconnected");
+      socketRef.current.off("user_kicked");
+      socketRef.current.off("room_creator");
+
+      disconnectSocket();
+    };
   };
 
   const sendMessage = (e) => {
@@ -156,6 +193,13 @@ const Room = () => {
     }
 
     navigate("/dashboard");
+  };
+
+  const kickUser = (targetId) => {
+    socketRef.current.emit("kick_user", {
+      roomId,
+      targetUserId: targetId,
+    });
   };
 
   return (
@@ -230,7 +274,8 @@ const Room = () => {
                       <img src={UserIcon} alt="Img" />
                     </div>
                     <div className="name">
-                      {user.name} {user.name && id === userId ? "(You)" : ""}{" "}
+                      {user.name} {id === creatorId && " 👑"}
+                      {id === userId && " (You)"}{" "}
                       <span>
                         {user.name && user.online
                           ? "🟢"
@@ -241,9 +286,11 @@ const Room = () => {
                     </div>
                   </div>
 
-                  <div className="kick">
-                    <img src={OutIcon} alt="kick" />
-                  </div>
+                  {isCreator && id !== userId && (
+                    <div className="kick" onClick={() => kickUser(id)}>
+                      <img src={OutIcon} alt="kick" />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

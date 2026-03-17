@@ -1,5 +1,6 @@
 const Location = require("../models/Location");
 const User = require("../models/User");
+const Room = require("../models/Room");
 
 module.exports = (io) => {
   io.on("connection", (socket) => {
@@ -18,6 +19,15 @@ module.exports = (io) => {
       await User.findByIdAndUpdate(userId, {
         isOnline: true,
       });
+
+      // GET ROOM CREATOR
+      const room = await Room.findOne({ roomId });
+
+      if (room && room.createdBy) {
+        socket.emit("room_creator", {
+          creatorId: room.createdBy.toString(),
+        });
+      }
 
       io.to(roomId).emit("user_status", {
         userId,
@@ -44,13 +54,6 @@ module.exports = (io) => {
     });
 
     // DISCONNECT
-    // socket.on("disconnect", async () => {
-    //   console.log("User disconnected");
-
-    //   if (socket.roomId && socket.userId) {
-    //     socket.to(socket.roomId).emit("user-disconnected", socket.userId);
-    //   }
-    // });
     socket.on("disconnect", async () => {
       console.log("User disconnected:", socket.id);
 
@@ -92,6 +95,33 @@ module.exports = (io) => {
       socket.leave(roomId);
 
       io.to(roomId).emit("user-disconnected", userId);
+    });
+
+    // KICK USER
+    socket.on("kick_user", async ({ roomId, targetUserId }) => {
+      try {
+        const room = await Room.findOne({ roomId });
+
+        if (!room) return;
+
+        if (room.createdBy.toString() !== socket.userId) return;
+
+        const sockets = await io.in(roomId).fetchSockets();
+
+        const targetSocket = sockets.find((s) => s.userId === targetUserId);
+
+        if (targetSocket) {
+          targetSocket.leave(roomId);
+
+          targetSocket.emit("user_kicked");
+
+          io.to(roomId).emit("user-disconnected", targetUserId);
+        }
+
+        await Room.updateOne({ roomId }, { $pull: { members: targetUserId } });
+      } catch (err) {
+        console.error("Kick error:", err);
+      }
     });
   });
 };
