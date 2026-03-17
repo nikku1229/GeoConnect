@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const roomRoutes = require("./routes/roomRoutes");
 const passport = require("./config/passport");
 const session = require("express-session");
+const cleanupRooms = require("./cron/cleanupRooms");
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ const connectDB = require("./config/db");
 connectDB();
 
 app.use("/api/auth", authRoutes);
-app.use("/api/rooms",roomRoutes);
+app.use("/api/rooms", roomRoutes);
 
 app.use(
   session({

@@ -23,16 +23,28 @@ module.exports = (io) => {
       // GET ROOM CREATOR
       const room = await Room.findOne({ roomId });
 
-      if (room && room.createdBy) {
-        socket.emit("room_creator", {
-          creatorId: room.createdBy.toString(),
+      if (room) {
+        // ✅ Add user to room
+        await Room.updateOne({ roomId }, { $addToSet: { members: userId } });
+
+        // ✅ Add room to user
+        await User.findByIdAndUpdate(userId, {
+          $addToSet: { rooms: room._id },
         });
+
+        if (room.createdBy) {
+          socket.emit("room_creator", {
+            creatorId: room.createdBy.toString(),
+          });
+        }
       }
 
       io.to(roomId).emit("user_status", {
         userId,
         status: "online",
       });
+
+      await Room.updateOne({ roomId }, { lastActive: new Date() });
     });
 
     // LOCATION UPDATE
@@ -91,10 +103,45 @@ module.exports = (io) => {
     });
 
     // LEAVE ROOM
-    socket.on("leave_room", async ({ roomId, userId }) => {
-      socket.leave(roomId);
+    // socket.on("leave_room", async ({ roomId, userId }) => {
+    //   socket.leave(roomId);
 
-      io.to(roomId).emit("user-disconnected", userId);
+    //   io.to(roomId).emit("user-disconnected", userId);
+    // });
+
+    socket.on("leave_room", async ({ roomId, userId }) => {
+      try {
+        socket.leave(roomId);
+
+        const room = await Room.findOne({ roomId });
+        if (!room) return;
+
+        // ✅ 1. Remove user from room
+        await Room.updateOne({ roomId }, { $pull: { members: userId } });
+
+        // ✅ 2. Remove room from user
+        await User.findByIdAndUpdate(userId, {
+          $pull: { rooms: room._id },
+          isOnline: false,
+        });
+
+        // ✅ 3. Check if room empty
+        const updatedRoom = await Room.findOne({ roomId });
+
+        if (updatedRoom.members.length === 0) {
+          await Room.updateOne({ roomId }, { lastActive: new Date() });
+        }
+
+        // ✅ 4. Emit updates
+        io.to(roomId).emit("user_status", {
+          userId,
+          status: "offline",
+        });
+
+        io.to(roomId).emit("user-disconnected", userId);
+      } catch (err) {
+        console.error("Leave room error:", err);
+      }
     });
 
     // KICK USER

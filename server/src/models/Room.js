@@ -29,6 +29,11 @@ const roomSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+
+    lastActive: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true },
 );
