@@ -6,7 +6,7 @@ import {
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import MarkerClusterGroup from "react-leaflet-cluster";
 

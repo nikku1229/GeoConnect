@@ -24,10 +24,8 @@ module.exports = (io) => {
       const room = await Room.findOne({ roomId });
 
       if (room) {
-        // ✅ Add user to room
         await Room.updateOne({ roomId }, { $addToSet: { members: userId } });
 
-        // ✅ Add room to user
         await User.findByIdAndUpdate(userId, {
           $addToSet: { rooms: room._id },
         });
@@ -71,7 +69,6 @@ module.exports = (io) => {
 
       try {
         if (socket.userId) {
-          // mark user offline
           await User.findByIdAndUpdate(socket.userId, {
             isOnline: false,
           });
@@ -103,11 +100,6 @@ module.exports = (io) => {
     });
 
     // LEAVE ROOM
-    // socket.on("leave_room", async ({ roomId, userId }) => {
-    //   socket.leave(roomId);
-
-    //   io.to(roomId).emit("user-disconnected", userId);
-    // });
 
     socket.on("leave_room", async ({ roomId, userId }) => {
       try {
@@ -116,23 +108,19 @@ module.exports = (io) => {
         const room = await Room.findOne({ roomId });
         if (!room) return;
 
-        // ✅ 1. Remove user from room
         await Room.updateOne({ roomId }, { $pull: { members: userId } });
 
-        // ✅ 2. Remove room from user
         await User.findByIdAndUpdate(userId, {
           $pull: { rooms: room._id },
           isOnline: false,
         });
 
-        // ✅ 3. Check if room empty
         const updatedRoom = await Room.findOne({ roomId });
 
         if (updatedRoom.members.length === 0) {
           await Room.updateOne({ roomId }, { lastActive: new Date() });
         }
 
-        // ✅ 4. Emit updates
         io.to(roomId).emit("user_status", {
           userId,
           status: "offline",

@@ -74,18 +74,6 @@ const leaveRoom = async (req, res) => {
 };
 
 // Get my rooms
-// const getMyRooms = async (req, res) => {
-//   try {
-//     const rooms = await Room.find({
-//       members: req.user._id,
-//     }).select("roomName roomId createdBy");
-
-//     res.json(rooms);
-//   } catch (err) {
-//     res.status(500).json(err.message);
-//   }
-// };
-
 const getMyRooms = async (req, res) => {
   try {
     const userId = req.user.id;
