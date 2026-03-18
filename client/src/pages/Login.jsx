@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import LocationIcon from "../assets/LocationIcon.svg";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -16,6 +18,8 @@ function Login() {
         email,
         password,
       });
+
+      setUser(res.data.user._id);
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data.user._id);
