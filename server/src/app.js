@@ -8,6 +8,7 @@ const roomRoutes = require("./routes/roomRoutes");
 const passport = require("./config/passport");
 const session = require("express-session");
 const cleanupRooms = require("./cron/cleanupRooms");
+const { globalLimiter } = require("./middleware/rateLimiter");
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(globalLimiter);
 
 app.get("/", (req, res) => {
   res.send("GeoConnect API Running");
