@@ -1,11 +1,13 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import LocationIcon from "../assets/LocationIcon.svg";
 import UserIcon from "../assets/UserIcon.svg";
 import OutIcon from "../assets/OutIcon.svg";
 
 function Header() {
   const { user, logout } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -46,7 +48,10 @@ function Header() {
                   <>
                     <button
                       className="primary-btn sign-out-btn"
-                      onClick={logout}
+                      onClick={() => {
+                        logout();
+                        showToast("Logout successful");
+                      }}
                     >
                       <img src={OutIcon} alt="Logout" />
                       Sign out

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import Toast from "../components/Toast";
 import { useAuth } from "../context/AuthContext";
 import AddIcon from "../assets/AddIcon.svg";
 
@@ -10,6 +11,7 @@ function Home() {
 
   return (
     <>
+      <Toast></Toast>
       <div className="container">
         <Header />
         <div className="home-container">

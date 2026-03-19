@@ -849,6 +849,39 @@ header {
   z-index: 1;
 }
 
+.toast {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: all 0.3s ease;
+  animation: toast 3s ease;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 9;
+  background-color: var(--input-bg);
+  color: var(--light);
+  animation: toast 200ms ease-out;
+
+  img {
+    width: 25px;
+    height: 25px;
+  }
+}
+
+@keyframes toast {
+  from {
+    top: -20%;
+  }
+  to {
+    top: 0;
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .home-container h1 {
     font-size: 3rem;
@@ -895,6 +928,10 @@ header {
         height: 20px !important;
       }
     }
+  }
+
+  .toast {
+    width: max-content;
   }
 }
 
@@ -1022,11 +1059,20 @@ header {
     right: 10px !important;
     font-size: 14px !important;
   }
+
+  .toast {
+    width: max-content;
+    max-width: 350px;
+  }
 }
 
 @media screen and (max-width: 370px) {
   .room-details {
     flex-direction: column;
     align-items: start !important;
+  }
+
+  .toast {
+    max-width: 280px !important;
   }
 }

@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { connectSocket, disconnectSocket } from "../socket/socket";
 import { useRoomAuth } from "../context/RoomAuth";
+import { useToast } from "../context/ToastContext";
 import MapView from "../components/MapView";
+import Toast from "../components/Toast";
 import { shouldSendLocation } from "../utils/locationThrottle";
 import LeftArrowIcon from "../assets/LeftArrowIcon.svg";
 import OutIcon from "../assets/OutIcon.svg";
@@ -15,6 +17,7 @@ const Room = () => {
   const { leaveRoom } = useRoomAuth();
   const { roomId } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const socketRef = useRef(null);
   const prevLocation = useRef(null);
@@ -88,8 +91,8 @@ const Room = () => {
     });
 
     socket.on("user_kicked", () => {
-      alert("You were kicked from the room");
-
+      // alert("You were kicked from the room");
+      showToast("You were kicked from the room");
       socketRef.current.disconnect();
 
       navigate("/dashboard");
@@ -182,8 +185,10 @@ const Room = () => {
         socketRef.current.disconnect();
       }
       navigate("/dashboard");
+      showToast("Leave room successful");
     } catch (err) {
       console.error("Error leaving room:", err);
+      showToast("Failed to leave room");
     }
   };
 
@@ -196,14 +201,20 @@ const Room = () => {
   };
 
   const kickUser = (targetId) => {
-    socketRef.current.emit("kick_user", {
-      roomId,
-      targetUserId: targetId,
-    });
+    try {
+      socketRef.current.emit("kick_user", {
+        roomId,
+        targetUserId: targetId,
+      });
+      showToast("User kicked");
+    } catch {
+      showToast("Failed to kick");
+    }
   };
 
   return (
     <>
+      <Toast></Toast>
       <MapView users={users} myLocation={myLocation} selfId={userId} />
       <div className="room-container">
         <div className="room-blocks top-left">
@@ -213,7 +224,10 @@ const Room = () => {
 
           <div
             className="room-id"
-            onClick={() => navigator.clipboard.writeText(roomId)}
+            onClick={() => {
+              navigator.clipboard.writeText(roomId);
+              showToast("Room id copy");
+            }}
           >
             {roomId}
           </div>

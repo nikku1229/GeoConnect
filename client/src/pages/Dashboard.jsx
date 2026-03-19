@@ -2,6 +2,8 @@ import { Activity, useState } from "react";
 import { useRoomAuth } from "../context/RoomAuth";
 import Header from "../components/Header";
 import RoomList from "../components/RoomList";
+import Toast from "../components/Toast";
+import { useToast } from "../context/ToastContext";
 import AddIcon from "../assets/AddIcon.svg";
 import EnterIcon from "../assets/EnterIcon.svg";
 
@@ -12,9 +14,11 @@ function Dashboard() {
   const [isCreateRoomVisible, setIsCreateRoomVisible] = useState(false);
   const [isJoinRoomVisible, setIsJoinRoomVisible] = useState(false);
   const { createRoom, joinRoom } = useRoomAuth();
+  const { showToast } = useToast();
 
   return (
     <>
+      <Toast></Toast>
       <Header></Header>
       <div className="dashboard-container">
         <section className="room-section">
@@ -54,7 +58,12 @@ function Dashboard() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  createRoom(roomName, password);
+                  try {
+                    createRoom(roomName, password);
+                    showToast("Room created");
+                  } catch {
+                    showToast("Failed to create");
+                  }
                 }}
               >
                 <div className="field">
@@ -94,7 +103,12 @@ function Dashboard() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  joinRoom(roomId, password);
+                  try {
+                    joinRoom(roomId, password);
+                    showToast("Room joined");
+                  } catch {
+                    showToast("Failed to joined");
+                  }
                 }}
               >
                 <div className="field">
