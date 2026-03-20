@@ -4,10 +4,14 @@ let socket = null;
 
 export const connectSocket = (token) => {
   if (!socket) {
-    socket = io("http://localhost:5000", {
-      transports: ["websocket"],
-      auth: { token },
-    });
+    socket = io(
+      import.meta.env.VITE_BACKEND_PRODUCTION_URL ||
+        import.meta.env.VITE_BACKEND_URL,
+      {
+        transports: ["websocket"],
+        auth: { token },
+      },
+    );
   }
   return socket;
 };

@@ -6,9 +6,9 @@ const {
   authLimiter,
   forgotPasswordLimiter,
 } = require("../middleware/rateLimiter");
-
 const passport = require("passport");
 require("../config/passport");
+require("dotenv").config();
 
 router.post("/register", authLimiter, authController.register);
 
@@ -33,7 +33,9 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
   (req, res) => {
-    res.redirect("http://localhost:5173/dashboard");
+    res.redirect(
+      `${process.env.CLIENT_PRODUCTION_URL || process.env.CLIENT_URL}/dashboard`,
+    );
   },
 );
 

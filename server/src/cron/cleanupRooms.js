@@ -7,7 +7,7 @@ module.exports = () => {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
       const result = await Room.deleteMany({
-        members: { $size: 0 },
+        members: { $exists: true, $eq: [] },
         lastActive: { $lt: oneHourAgo },
       });
 
