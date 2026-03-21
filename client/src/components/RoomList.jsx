@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api";
+import { useRoomAuth } from "../context/RoomAuth";
 import { useToast } from "../context/ToastContext";
 import { getSocket } from "../socket/socket";
 import RoomUserIcon from "../assets/RoomUserIcon.svg";
@@ -8,18 +8,9 @@ import DoubleArrowIcon from "../assets/DoubleArrowIcon.svg";
 import AlertIcon from "../assets/AlertIcon.svg";
 
 function RoomList() {
-  const [rooms, setRooms] = useState([]);
   const navigate = useNavigate();
+  const { fetchRooms, rooms } = useRoomAuth();
   const { showToast } = useToast();
-
-  const fetchRooms = async () => {
-    try {
-      const res = await API.get("/rooms/myrooms");
-      setRooms(res.data);
-    } catch (err) {
-      console.error("Error fetching rooms:", err);
-    }
-  };
 
   useEffect(() => {
     fetchRooms();

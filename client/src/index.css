@@ -873,12 +873,62 @@ header {
   }
 }
 
+.db-loader {
+  padding-top: 100px;
+}
+
+.user-form-loader {
+  padding-top: 30px;
+}
+
+.loader {
+  width: 130px;
+  height: 130px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .back1,
+  .back2,
+  .back3 {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+    animation: loader 2s ease infinite;
+    opacity: 0;
+  }
+
+  .back1 {
+    animation-delay: 2s;
+  }
+  .back2 {
+    animation-delay: 1s;
+  }
+  .back3 {
+    animation-delay: 0.5s;
+  }
+}
+
 @keyframes toast {
   from {
     top: -20%;
   }
   to {
     top: 0;
+  }
+}
+
+@keyframes loader {
+  from {
+    scale: 0.3;
+    opacity: 0.8;
+  }
+  to {
+    scale: 1.2;
+    opacity: 0;
   }
 }
 
@@ -954,6 +1004,15 @@ header {
   .room-stats {
     flex-direction: column;
     gap: 5px !important;
+  }
+
+  .loader {
+    width: 80px;
+    height: 80px;
+  }
+
+  .db-loader {
+    padding-top: 50px;
   }
 }
 

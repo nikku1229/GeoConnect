@@ -91,7 +91,6 @@ const Room = () => {
     });
 
     socket.on("user_kicked", () => {
-      // alert("You were kicked from the room");
       showToast("You were kicked from the room");
       socketRef.current.disconnect();
 

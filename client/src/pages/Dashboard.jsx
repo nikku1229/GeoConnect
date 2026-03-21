@@ -1,9 +1,11 @@
-import { Activity, useState } from "react";
+import { Activity, useState, useEffect } from "react";
 import { useRoomAuth } from "../context/RoomAuth";
 import Header from "../components/Header";
 import RoomList from "../components/RoomList";
 import Toast from "../components/Toast";
+import Loader from "../components/Loader";
 import { useToast } from "../context/ToastContext";
+import { useLoader } from "../context/LoaderContext";
 import AddIcon from "../assets/AddIcon.svg";
 import EnterIcon from "../assets/EnterIcon.svg";
 
@@ -13,8 +15,24 @@ function Dashboard() {
   const [roomId, setRoomId] = useState("");
   const [isCreateRoomVisible, setIsCreateRoomVisible] = useState(false);
   const [isJoinRoomVisible, setIsJoinRoomVisible] = useState(false);
-  const { createRoom, joinRoom } = useRoomAuth();
+  const { createRoom, joinRoom, fetchRooms } = useRoomAuth();
   const { showToast } = useToast();
+  const { loader, setLoader } = useLoader();
+
+  useEffect(() => {
+    const loadRooms = async () => {
+      try {
+        setLoader(true);
+        await fetchRooms();
+      } catch (err) {
+        showToast("Room load failed");
+      } finally {
+        setLoader(false);
+      }
+    };
+
+    loadRooms();
+  }, []);
 
   return (
     <>
@@ -137,7 +155,13 @@ function Dashboard() {
           </section>
         </Activity>
 
-        <RoomList></RoomList>
+        {loader ? (
+          <div className="db-loader">
+            <Loader></Loader>
+          </div>
+        ) : (
+          <RoomList></RoomList>
+        )}
       </div>
     </>
   );

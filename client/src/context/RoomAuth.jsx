@@ -4,6 +4,8 @@ import API from "../services/api";
 const RoomAuthContext = createContext();
 
 export const RoomAuthProvider = ({ children }) => {
+  const [rooms, setRooms] = useState([]);
+
   const createRoom = async (roomName, password) => {
     try {
       const res = await API.post("/rooms/create", {
@@ -45,8 +47,19 @@ export const RoomAuthProvider = ({ children }) => {
     }
   };
 
+  const fetchRooms = async () => {
+    try {
+      const res = await API.get("/rooms/myrooms");
+      setRooms(res.data);
+    } catch (err) {
+      console.error("Error fetching rooms:", err);
+    }
+  };
+
   return (
-    <RoomAuthContext.Provider value={{ createRoom, joinRoom, leaveRoom }}>
+    <RoomAuthContext.Provider
+      value={{ createRoom, joinRoom, leaveRoom, fetchRooms, rooms, setRooms }}
+    >
       {children}
     </RoomAuthContext.Provider>
   );
