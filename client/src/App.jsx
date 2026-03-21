@@ -7,6 +7,7 @@ import Room from "./pages/Room";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ErrorPage from "./pages/ErrorPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         </Route>
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </BrowserRouter>
   );
