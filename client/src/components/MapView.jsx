@@ -138,8 +138,8 @@ const MapView = ({ users, myLocation, selfId }) => {
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
-        attribution="Nitish Sharma"
-        url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+        attribution="&copy; OpenStreetMap contributors & Stadia Maps"
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
 
       <AutoCenter users={users} />
