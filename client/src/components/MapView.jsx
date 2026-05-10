@@ -30,22 +30,25 @@ const createAvatarIcon = (name, color) => {
 
   return L.divIcon({
     html: `
-      <div style="
-        background:${color};
-        width:40px;
-        height:40px;
-        border-radius:50%;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        color:white;
-        font-weight:bold;
-        font-size:16px;
-        border:2px solid white;
-      ">
-        ${firstLetter}
-      </div>
-    `,
+    <div style="
+      background:${color};
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      font-weight:bold;
+      font-size:16px;
+      border:2px solid rgba(255,255,255,0.8);
+      box-shadow:0 0 15px ${color};
+      backdrop-filter: blur(10px);
+      transition:all 0.3s ease;
+    ">
+      ${firstLetter}
+    </div>
+  `,
     className: "map-avatar",
   });
 };
@@ -135,8 +138,8 @@ const MapView = ({ users, myLocation, selfId }) => {
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
-        attribution="FeatureMapByNikku1229"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="Nitish Sharma"
+        url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
       />
 
       <AutoCenter users={users} />

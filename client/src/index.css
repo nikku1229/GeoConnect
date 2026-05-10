@@ -75,6 +75,7 @@ header {
       a {
         text-decoration: none;
         color: var(--light);
+
         h2 {
           font-size: 24px;
           font-weight: 600;
@@ -319,6 +320,7 @@ header {
         text-decoration: underline;
       }
     }
+
     p {
       font-size: 14px;
       color: var(--l-gray);
@@ -636,8 +638,7 @@ header {
     }
 
     button img {
-      filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(100deg)
-        brightness(200%) contrast(100%);
+      filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(100deg) brightness(200%) contrast(100%);
     }
   }
 
@@ -650,8 +651,7 @@ header {
     img {
       width: 25px;
       height: 25px;
-      filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(210deg)
-        brightness(200%) contrast(100%);
+      filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(210deg) brightness(200%) contrast(100%);
     }
   }
 
@@ -742,8 +742,7 @@ header {
 
       .kick {
         img {
-          filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(100deg)
-            brightness(200%) contrast(100%);
+          filter: invert(20%) sepia(97%) saturate(2000%) hue-rotate(100deg) brightness(200%) contrast(100%);
           cursor: pointer;
         }
       }
@@ -847,6 +846,50 @@ header {
   width: 100vw;
   height: 100vh;
   z-index: 1;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+/* Tooltip Style */
+.leaflet-tooltip {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 10px;
+  padding: 8px 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Cluster Style */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid var(--secondary-color);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.map-avatar div {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 2px currentColor;
+  }
+
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 5px currentColor;
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 2px currentColor;
+  }
 }
 
 .toast {
@@ -904,9 +947,11 @@ header {
   .back1 {
     animation-delay: 2s;
   }
+
   .back2 {
     animation-delay: 1s;
   }
+
   .back3 {
     animation-delay: 0.5s;
   }
@@ -945,6 +990,7 @@ header {
   from {
     top: -20%;
   }
+
   to {
     top: 0;
   }
@@ -955,6 +1001,7 @@ header {
     scale: 0.3;
     opacity: 0.8;
   }
+
   to {
     scale: 1.2;
     opacity: 0;
