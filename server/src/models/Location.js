@@ -1,25 +1,27 @@
 const mongoose = require("mongoose");
 
 const locationSchema = new mongoose.Schema({
-
-  userId:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"User"
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
 
-  roomId:{
-    type:String
+  roomId: {
+    type: String,
   },
 
-  latitude:Number,
+  name: {
+    type: String,
+  },
 
-  longitude:Number,
+  latitude: Number,
 
-  updatedAt:{
-    type:Date,
-    default:Date.now
-  }
+  longitude: Number,
 
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model("Location",locationSchema);
+module.exports = mongoose.model("Location", locationSchema);

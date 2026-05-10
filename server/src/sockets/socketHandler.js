@@ -8,59 +8,99 @@ module.exports = (io) => {
 
     // USER JOINS ROOM
     socket.on("join_room", async (data) => {
-      const { roomId, userId, username } = data;
+      try {
+        const { roomId, userId, username } = data;
 
-      socket.join(roomId);
+        socket.join(roomId);
 
-      socket.userId = userId;
-      socket.username = username;
-      socket.roomId = roomId;
-
-      await User.findByIdAndUpdate(userId, {
-        isOnline: true,
-      });
-
-      // GET ROOM CREATOR
-      const room = await Room.findOne({ roomId });
-
-      if (room) {
-        await Room.updateOne({ roomId }, { $addToSet: { members: userId } });
+        socket.userId = userId;
+        socket.username = username;
+        socket.roomId = roomId;
 
         await User.findByIdAndUpdate(userId, {
-          $addToSet: { rooms: room._id },
+          isOnline: true,
         });
 
-        if (room.createdBy) {
-          socket.emit("room_creator", {
-            creatorId: room.createdBy.toString(),
+        // GET ROOM CREATOR
+        const room = await Room.findOne({ roomId });
+
+        if (room) {
+          await Room.updateOne({ roomId }, { $addToSet: { members: userId } });
+
+          await User.findByIdAndUpdate(userId, {
+            $addToSet: { rooms: room._id },
           });
+
+          if (room.createdBy) {
+            socket.emit("room_creator", {
+              creatorId: room.createdBy.toString(),
+            });
+          }
         }
+
+        // SEND EXISTING USERS LOCATIONS
+        const existingLocations = await Location.find({ roomId })
+          .populate("userId", "isOnline")
+          .lean();
+
+        socket.emit(
+          "all_locations",
+          existingLocations.map((loc) => ({
+            userId: loc.userId._id.toString(),
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            name: loc.name,
+            online: loc.userId.isOnline,
+          })),
+        );
+
+        io.to(roomId).emit("user_status", {
+          userId,
+          status: "online",
+        });
+
+        await Room.updateOne({ roomId }, { lastActive: new Date() });
+      } catch (err) {
+        console.error("Joined room error:", err);
       }
-
-      io.to(roomId).emit("user_status", {
-        userId,
-        status: "online",
-      });
-
-      await Room.updateOne({ roomId }, { lastActive: new Date() });
     });
 
     // LOCATION UPDATE
     socket.on("location_update", async (data) => {
-      const { userId, roomId, latitude, longitude, name } = data;
+      try {
+        const { userId, roomId, latitude, longitude, name } = data;
 
-      await Location.findOneAndUpdate(
-        { userId, roomId },
-        { latitude, longitude, updatedAt: Date.now() },
-        { upsert: true },
-      );
+        await Location.findOneAndUpdate(
+          { userId, roomId },
+          { latitude, longitude, name, updatedAt: Date.now() },
+          { upsert: true },
+        );
 
-      io.to(roomId).emit("location_update", {
-        userId,
-        latitude,
-        longitude,
-        name,
-      });
+        io.to(roomId).emit("location_update", {
+          userId,
+          latitude,
+          longitude,
+          name,
+        });
+      } catch (err) {
+        console.error("Location update error:", err);
+      }
+    });
+
+    // INACTIVE USER
+    socket.on("user_inactive", async ({ roomId, userId }) => {
+      try {
+        await User.findByIdAndUpdate(userId, {
+          isOnline: false,
+        });
+
+        io.to(roomId).emit("user_status", {
+          userId,
+          status: "offline",
+        });
+      } catch (err) {
+        console.error("User inactive error:", err);
+      }
     });
 
     // DISCONNECT
@@ -79,8 +119,6 @@ module.exports = (io) => {
             userId: socket.userId,
             status: "offline",
           });
-
-          io.to(socket.roomId).emit("user-disconnected", socket.userId);
         }
       } catch (err) {
         console.error("Disconnect error:", err);
@@ -89,14 +127,18 @@ module.exports = (io) => {
 
     // CHAT MESSAGE
     socket.on("send_message", (data) => {
-      const { roomId, userId, username, message } = data;
+      try {
+        const { roomId, userId, username, message } = data;
 
-      io.to(roomId).emit("receive_message", {
-        userId,
-        username,
-        message,
-        time: new Date(),
-      });
+        io.to(roomId).emit("receive_message", {
+          userId,
+          username,
+          message,
+          time: new Date(),
+        });
+      } catch (err) {
+        console.error("Send message error:", err);
+      }
     });
 
     // LEAVE ROOM
@@ -106,6 +148,7 @@ module.exports = (io) => {
         socket.leave(roomId);
 
         const room = await Room.findOne({ roomId });
+
         if (!room) return;
 
         await Room.updateOne({ roomId }, { $pull: { members: userId } });
@@ -115,20 +158,15 @@ module.exports = (io) => {
           isOnline: false,
         });
 
-        const updatedRoom = await Room.findOne({ roomId });
-
-        if (updatedRoom.members.length === 0) {
-          await Room.updateOne({ roomId }, { lastActive: new Date() });
-        }
-
-        io.to(roomId).emit("user_status", {
+        // DELETE LOCATION
+        await Location.deleteOne({
           userId,
-          status: "offline",
+          roomId,
         });
 
         io.to(roomId).emit("user-disconnected", userId);
       } catch (err) {
-        console.error("Leave room error:", err);
+        console.error(err);
       }
     });
 
@@ -154,6 +192,15 @@ module.exports = (io) => {
         }
 
         await Room.updateOne({ roomId }, { $pull: { members: targetUserId } });
+
+        await Location.deleteOne({
+          userId: targetUserId,
+          roomId,
+        });
+
+        await User.findByIdAndUpdate(targetUserId, {
+          $pull: { rooms: room._id },
+        });
       } catch (err) {
         console.error("Kick error:", err);
       }

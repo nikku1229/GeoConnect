@@ -76,7 +76,7 @@ const leaveRoom = async (req, res) => {
 // Get my rooms
 const getMyRooms = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     const rooms = await Room.find({
       members: userId,

@@ -39,15 +39,19 @@ const Room = () => {
   const watchIdRef = useRef(null);
 
   useEffect(() => {
-    startLocationTracking();
-
     const socket = connectSocket();
     socketRef.current = socket;
 
-    socket.emit("join_room", {
-      roomId,
-      userId,
-      username,
+    socket.on("connect", () => {
+      socket.emit("join_room", {
+        roomId,
+        userId,
+        username,
+      });
+
+      if (!watchIdRef.current) {
+        startLocationTracking();
+      }
     });
 
     socket.on("location_update", (data) => {
@@ -56,12 +60,30 @@ const Room = () => {
       setUsers((prev) => ({
         ...prev,
         [userId]: {
+          ...prev[userId],
           lat: latitude,
           lng: longitude,
           name,
-          online: true,
         },
       }));
+    });
+
+    socket.on("all_locations", (locations) => {
+      setUsers((prev) => {
+        const updated = { ...prev };
+
+        locations.forEach((loc) => {
+          updated[loc.userId] = {
+            ...updated[loc.userId],
+            lat: loc.latitude,
+            lng: loc.longitude,
+            name: loc.name,
+            online: loc.online,
+          };
+        });
+
+        return updated;
+      });
     });
 
     socket.on("user_status", ({ userId, status }) => {
@@ -78,14 +100,6 @@ const Room = () => {
       setChat((prev) => [...prev, msg]);
     });
 
-    socket.on("user-disconnected", (userId) => {
-      setUsers((prev) => {
-        const updated = { ...prev };
-        delete updated[userId];
-        return updated;
-      });
-    });
-
     socket.on("room_creator", ({ creatorId }) => {
       setCreatorId(creatorId);
     });
@@ -94,11 +108,28 @@ const Room = () => {
       showToast("You were kicked from the room");
       socketRef.current.disconnect();
 
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+
       navigate("/dashboard");
+    });
+
+    socket.on("user-disconnected", (userId) => {
+      setUsers((prev) => {
+        const updated = { ...prev };
+        delete updated[userId];
+        return updated;
+      });
     });
 
     return () => {
       if (!socketRef.current) return;
+
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
 
       socketRef.current.off("location_update");
       socketRef.current.off("user_status");
@@ -106,6 +137,7 @@ const Room = () => {
       socketRef.current.off("user-disconnected");
       socketRef.current.off("user_kicked");
       socketRef.current.off("room_creator");
+      socketRef.current.off("all_locations");
 
       disconnectSocket();
     };
@@ -127,6 +159,8 @@ const Room = () => {
 
         setMyLocation(newLocation);
 
+        if (!socketRef.current?.connected) return;
+
         socketRef.current.emit("location_update", {
           userId,
           roomId,
@@ -135,7 +169,10 @@ const Room = () => {
           name: username,
         });
       },
-      (err) => console.log(err),
+      (err) => {
+        showToast("Location permission denied");
+        console.error(err);
+      },
       {
         enableHighAccuracy: true,
         maximumAge: 5000,
@@ -147,29 +184,18 @@ const Room = () => {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
-
-      if (!socketRef.current) return;
-
-      socketRef.current.off("location_update");
-      socketRef.current.off("user_status");
-      socketRef.current.off("receive_message");
-      socketRef.current.off("user-disconnected");
-      socketRef.current.off("user_kicked");
-      socketRef.current.off("room_creator");
-
-      disconnectSocket();
     };
   };
 
   const sendMessage = (e) => {
     e.preventDefault();
-    if (!message) return;
+    if (!message.trim()) return;
 
     socketRef.current.emit("send_message", {
       roomId,
       userId,
       username,
-      message,
+      message: message.trim(),
     });
 
     setMessage("");
@@ -193,6 +219,11 @@ const Room = () => {
 
   const handleBack = () => {
     if (socketRef.current) {
+      socketRef.current.emit("user_inactive", {
+        roomId,
+        userId,
+      });
+
       socketRef.current.disconnect();
     }
 
@@ -205,6 +236,7 @@ const Room = () => {
         roomId,
         targetUserId: targetId,
       });
+
       showToast("User kicked");
     } catch {
       showToast("Failed to kick");

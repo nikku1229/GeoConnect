@@ -868,6 +868,11 @@ header {
   background: rgba(0, 0, 0, 0.6);
   border: 2px solid var(--secondary-color);
   color: white;
+  border-radius: 50%;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   backdrop-filter: blur(10px);
 }
 
