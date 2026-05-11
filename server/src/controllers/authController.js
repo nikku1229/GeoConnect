@@ -105,7 +105,6 @@ const forgotPassword = async (req, res) => {
     };
 
     const response = await resend.emails.send(msg);
-    console.log(response);
 
     res.json({ message: "Reset email sent" });
   } catch (error) {
