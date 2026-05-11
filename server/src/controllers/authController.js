@@ -3,13 +3,11 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const dotenv = require("dotenv");
-const sgMail = require("@sendgrid/mail");
+const { Resend } = require("resend");
 
 dotenv.config();
 
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const register = async (req, res) => {
   try {
@@ -90,24 +88,28 @@ const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
     const msg = {
-      to: email,
-      from: {
-        email: process.env.EMAIL_FROM,
-        name: "GeoConnect",
-      },
+      from: process.env.EMAIL_FROM,
+      to: "niteshsharma5740@gmail.com",
       subject: "Password Reset - GeoConnect",
       html: `
-    <h2>Password Reset</h2>
-    <p>Click the link below to reset password:</p>
-    <a href="${resetUrl}">${resetUrl}</a>
-  `,
+      <h2>Password Reset</h2>
+      <p>Click the link below to reset password:</p>
+
+      <a href="${resetUrl}">
+        Reset Password
+      </a>
+
+      <p>${resetUrl}</p>
+      <p>This link will expire in 1 hour.</p>
+      `,
     };
 
-    await sgMail.send(msg);
+    const response = await resend.emails.send(msg);
+    console.log(response);
 
     res.json({ message: "Reset email sent" });
   } catch (error) {
-    console.log("SENDGRID ERROR:", error.response?.body || error);
+    console.log("RESEND ERROR:", error.response?.body || error);
 
     res.status(500).json({
       message: "Email sending failed",
