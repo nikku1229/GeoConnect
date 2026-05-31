@@ -41,7 +41,9 @@ function RoomList() {
               key={room.roomId}
               className="room-card"
               onClick={() => {
-                navigate(`/room/${room.roomId}`);
+                navigate(`/room/${room.roomId}`, {
+                  state: { password: room.password },
+                });
                 showToast("Room joined");
               }}
             >

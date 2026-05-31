@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { connectSocket, disconnectSocket } from "../socket/socket";
 import { useRoomAuth } from "../context/RoomAuth";
 import { useToast } from "../context/ToastContext";
@@ -17,7 +17,9 @@ const Room = () => {
   const { leaveRoom } = useRoomAuth();
   const { roomId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
+  const roomPass = location.state?.password || "";
 
   const socketRef = useRef(null);
   const prevLocation = useRef(null);
@@ -261,6 +263,8 @@ const Room = () => {
             }}
           >
             {roomId}
+            <br />
+            <small>Pass: {isCreator ? roomPass : ""}</small>
           </div>
         </div>
 

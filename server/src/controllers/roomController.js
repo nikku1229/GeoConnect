@@ -1,6 +1,5 @@
 const Room = require("../models/Room");
 const User = require("../models/User");
-const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 
 // CREATE ROOM
@@ -10,12 +9,10 @@ const createRoom = async (req, res) => {
 
     const roomId = uuidv4().slice(0, 8);
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const room = await Room.create({
       roomName,
       roomId,
-      password: hashedPassword,
+      password,
       createdBy: req.user._id,
       members: [req.user._id],
     });
@@ -41,7 +38,7 @@ const joinRoom = async (req, res) => {
       return res.status(404).json({ message: "Room not found" });
     }
 
-    const match = await bcrypt.compare(password, room.password);
+    const match = password === room.password;
 
     if (!match) {
       return res.status(400).json({ message: "Wrong password" });
@@ -92,6 +89,7 @@ const getMyRooms = async (req, res) => {
       return {
         roomId: room.roomId,
         roomName: room.roomName,
+        password: room.password,
         membersCount,
         activeCount,
       };
