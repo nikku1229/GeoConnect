@@ -264,7 +264,7 @@ const Room = () => {
           >
             {roomId}
             <br />
-            <small>Pass: {isCreator ? roomPass : ""}</small>
+            <small>{`Pass: ${isCreator ? roomPass : ""}`}</small>
           </div>
         </div>
 
