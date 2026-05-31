@@ -7,6 +7,8 @@ import Loader from "../components/Loader";
 import { useToast } from "../context/ToastContext";
 import { useLoader } from "../context/LoaderContext";
 import LocationIcon from "../assets/LocationIcon.svg";
+import EyeIcon from "../assets/EyeIcon.svg";
+import EyeOffIcon from "../assets/EyeOffIcon.svg";
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -15,6 +17,7 @@ const ResetPassword = () => {
   const { loader, setLoader } = useLoader();
 
   const [password, setPassword] = useState("");
+  const [togglePassword, setTogglePassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,13 +66,22 @@ const ResetPassword = () => {
           <form onSubmit={handleSubmit}>
             <div className="field">
               <label htmlFor="password"></label>
-              <input
-                type="password"
-                id="password"
-                placeholder="New password"
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={togglePassword ? "text" : "password"}
+                  id="password"
+                  placeholder="New password"
+                  required
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <span onClick={() => setTogglePassword(!togglePassword)}>
+                  {togglePassword ? (
+                    <img src={EyeOffIcon} alt="Hide Password" />
+                  ) : (
+                    <img src={EyeIcon} alt="Show Password" />
+                  )}
+                </span>
+              </div>
             </div>
 
             <button type="submit" className="secondary-btn">

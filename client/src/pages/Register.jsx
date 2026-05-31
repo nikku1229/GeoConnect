@@ -6,6 +6,8 @@ import Loader from "../components/Loader";
 import { useToast } from "../context/ToastContext";
 import { useLoader } from "../context/LoaderContext";
 import LocationIcon from "../assets/LocationIcon.svg";
+import EyeIcon from "../assets/EyeIcon.svg";
+import EyeOffIcon from "../assets/EyeOffIcon.svg";
 
 function Register() {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [togglePassword, setTogglePassword] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -83,13 +86,22 @@ function Register() {
 
             <div className="field">
               <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                placeholder="******"
-                required
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={togglePassword ? "text" : "password"}
+                  id="password"
+                  placeholder="******"
+                  required
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <span onClick={() => setTogglePassword(!togglePassword)}>
+                  {togglePassword ? (
+                    <img src={EyeOffIcon} alt="Hide Password" />
+                  ) : (
+                    <img src={EyeIcon} alt="Show Password" />
+                  )}
+                </span>
+              </div>
             </div>
 
             <button type="submit" className="secondary-btn">

@@ -8,6 +8,8 @@ import { useToast } from "../context/ToastContext";
 import { useLoader } from "../context/LoaderContext";
 import AddIcon from "../assets/AddIcon.svg";
 import EnterIcon from "../assets/EnterIcon.svg";
+import EyeIcon from "../assets/EyeIcon.svg";
+import EyeOffIcon from "../assets/EyeOffIcon.svg";
 
 function Dashboard() {
   const [roomName, setRoomName] = useState("");
@@ -15,6 +17,8 @@ function Dashboard() {
   const [roomId, setRoomId] = useState("");
   const [isCreateRoomVisible, setIsCreateRoomVisible] = useState(false);
   const [isJoinRoomVisible, setIsJoinRoomVisible] = useState(false);
+  const [togglePassword, setTogglePassword] = useState(false);
+
   const { createRoom, joinRoom, fetchRooms } = useRoomAuth();
   const { showToast } = useToast();
   const { loader, setLoader } = useLoader();
@@ -94,12 +98,22 @@ function Dashboard() {
                 </div>
                 <div className="field">
                   <label htmlFor="password">Room Password</label>
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="Set password for the room"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <div className="password-input-wrapper">
+                    <input
+                      type={togglePassword ? "text" : "password"}
+                      id="password"
+                      placeholder="Set password for the room"
+                      required
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <span onClick={() => setTogglePassword(!togglePassword)}>
+                      {togglePassword ? (
+                        <img src={EyeOffIcon} alt="Hide Password" />
+                      ) : (
+                        <img src={EyeIcon} alt="Show Password" />
+                      )}
+                    </span>
+                  </div>
                 </div>
                 <button type="submit" className="secondary-btn">
                   <img src={AddIcon} alt="Create" />
@@ -139,12 +153,22 @@ function Dashboard() {
                 </div>
                 <div className="field">
                   <label htmlFor="password">Room Password</label>
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="Enter Room Password"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <div className="password-input-wrapper">
+                    <input
+                      type={togglePassword ? "text" : "password"}
+                      id="password"
+                      placeholder="Enter Room Password"
+                      required
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <span onClick={() => setTogglePassword(!togglePassword)}>
+                      {togglePassword ? (
+                        <img src={EyeOffIcon} alt="Hide Password" />
+                      ) : (
+                        <img src={EyeIcon} alt="Show Password" />
+                      )}
+                    </span>
+                  </div>
                 </div>
                 <button type="submit" className="secondary-btn">
                   <img src={EnterIcon} alt="Join" />

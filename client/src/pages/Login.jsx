@@ -7,10 +7,13 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { useLoader } from "../context/LoaderContext";
 import LocationIcon from "../assets/LocationIcon.svg";
+import EyeIcon from "../assets/EyeIcon.svg";
+import EyeOffIcon from "../assets/EyeOffIcon.svg";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [togglePassword, setTogglePassword] = useState(false);
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const { showToast } = useToast();
@@ -76,13 +79,22 @@ function Login() {
             </div>
             <div className="field">
               <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                placeholder="******"
-                required
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={togglePassword ? "text" : "password"}
+                  id="password"
+                  placeholder="******"
+                  required
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <span onClick={() => setTogglePassword(!togglePassword)}>
+                  {togglePassword ? (
+                    <img src={EyeOffIcon} alt="Hide Password" />
+                  ) : (
+                    <img src={EyeIcon} alt="Show Password" />
+                  )}
+                </span>
+              </div>
             </div>
             <Link to="/forgot-password">Forgot Password?</Link>
             <button type="submit" className="secondary-btn">

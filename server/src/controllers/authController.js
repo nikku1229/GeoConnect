@@ -3,11 +3,17 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const dotenv = require("dotenv");
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: process.env.EMAIL_SERVICE || "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 const register = async (req, res) => {
   try {
@@ -88,8 +94,8 @@ const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
     const msg = {
-      from: process.env.EMAIL_FROM,
-      to: "niteshsharma5740@gmail.com",
+      from: `GeoConnect - <${process.env.EMAIL_FROM}>`,
+      to: email,
       subject: "Password Reset - GeoConnect",
       html: `
       <h2>Password Reset</h2>
@@ -104,7 +110,9 @@ const forgotPassword = async (req, res) => {
       `,
     };
 
-    const response = await resend.emails.send(msg);
+    // const response = await resend.emails.send(msg);
+    await transporter.verify();
+    await transporter.sendMail(msg);
 
     res.json({ message: "Reset email sent" });
   } catch (error) {
