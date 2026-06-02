@@ -3,8 +3,10 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { connectSocket, disconnectSocket } from "../socket/socket";
 import { useRoomAuth } from "../context/RoomAuth";
 import { useToast } from "../context/ToastContext";
+import { pinApi } from "../services/pinApi";
 import MapView from "../components/MapView";
 import Toast from "../components/Toast";
+import Sidebar from "../components/Sidebar";
 import { shouldSendLocation } from "../utils/locationThrottle";
 import LeftArrowIcon from "../assets/LeftArrowIcon.svg";
 import OutIcon from "../assets/OutIcon.svg";
@@ -28,6 +30,10 @@ const Room = () => {
   const [creatorId, setCreatorId] = useState(null);
   const [myLocation, setMyLocation] = useState(null);
 
+  const [pins, setPins] = useState([]);
+  const [isMapPickMode, setIsMapPickMode] = useState(false);
+  const [pendingPinComment, setPendingPinComment] = useState("");
+
   const userId = localStorage.getItem("userId");
   const username = localStorage.getItem("username");
 
@@ -39,6 +45,16 @@ const Room = () => {
 
   const isCreator = creatorId && creatorId === userId;
   const watchIdRef = useRef(null);
+
+  // Fetch pins function
+  const fetchPins = async () => {
+    try {
+      const res = await pinApi.getRoomPins(roomId);
+      setPins(res.data);
+    } catch (err) {
+      console.error("Fetch pins error:", err);
+    }
+  };
 
   useEffect(() => {
     const socket = connectSocket();
@@ -54,6 +70,10 @@ const Room = () => {
       if (!watchIdRef.current) {
         startLocationTracking();
       }
+
+      setTimeout(() => {
+        fetchPins();
+      }, 500);
     });
 
     socket.on("location_update", (data) => {
@@ -125,6 +145,23 @@ const Room = () => {
       });
     });
 
+    socket.on("all_pins", (existingPins) => {
+      setPins(existingPins);
+    });
+
+    socket.on("pin_added", (newPin) => {
+      setPins((prev) => {
+        const exists = prev.some((p) => p._id === newPin._id);
+        if (exists) return prev;
+        return [newPin, ...prev];
+      });
+    });
+
+    socket.on("pin_removed", ({ pinId }) => {
+      setPins((prev) => prev.filter((p) => p._id !== pinId));
+      showToast("Pin removed");
+    });
+
     return () => {
       if (!socketRef.current) return;
 
@@ -140,6 +177,9 @@ const Room = () => {
       socketRef.current.off("user_kicked");
       socketRef.current.off("room_creator");
       socketRef.current.off("all_locations");
+      socketRef.current.off("all_pins");
+      socketRef.current.off("pin_added");
+      socketRef.current.off("pin_removed");
 
       disconnectSocket();
     };
@@ -245,10 +285,118 @@ const Room = () => {
     }
   };
 
+  const handleAddPin = async (pinData) => {
+    try {
+      const res = await pinApi.createPin({
+        roomId,
+        ...pinData,
+      });
+
+      // Emit via socket for real-time
+      if (socketRef.current && socketRef.current.connected) {
+        socketRef.current.emit("new_pin", {
+          roomId,
+          pin: pinData,
+        });
+      }
+
+      setPins((prev) => [res.data, ...prev]);
+
+      showToast("Pin added successfully");
+      return res.data;
+    } catch (err) {
+      console.error("Add pin error:", err);
+      showToast("Failed to add pin");
+      throw err;
+    }
+  };
+
+  const handleDeletePin = async (pinId) => {
+    try {
+      await pinApi.deletePin(pinId);
+
+      // Update local state
+      setPins((prev) => prev.filter((p) => p._id !== pinId));
+
+      // Emit via socket
+      if (socketRef.current) {
+        socketRef.current.emit("delete_pin", { roomId, pinId });
+      }
+
+      showToast("Pin deleted successful");
+    } catch (err) {
+      console.error("Delete pin error:", err);
+      showToast(err.response?.data?.message || "Failed to delete pin");
+    }
+  };
+
+  const handleMapClick = async (lat, lng) => {
+    if (!isMapPickMode) return;
+    if (!pendingPinComment) {
+      showToast("Please enter a comment first");
+      setIsMapPickMode(false);
+      return;
+    }
+
+    try {
+      const pinData = {
+        comment: pendingPinComment,
+        latitude: lat,
+        longitude: lng,
+        locationName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+      };
+
+      const res = await pinApi.createPin({
+        roomId,
+        ...pinData,
+      });
+
+      // Add to local state immediately
+      setPins((prev) => [res.data, ...prev]);
+
+      // Emit via socket for others
+      if (socketRef.current && socketRef.current.connected) {
+        socketRef.current.emit("new_pin", {
+          roomId,
+          pin: pinData,
+        });
+      }
+
+      showToast("Pin added successfully");
+    } catch (err) {
+      console.error("Add pin error:", err);
+      showToast("Failed to add pin");
+    }
+
+    setIsMapPickMode(false);
+    setPendingPinComment("");
+  };
+
+  const enableMapPickMode = (comment) => {
+    setPendingPinComment(comment);
+    setIsMapPickMode(true);
+    showToast("Click anywhere on the map to place your pin");
+  };
+
   return (
     <>
-      <Toast></Toast>
-      <MapView users={users} myLocation={myLocation} selfId={userId} />
+      <Toast />
+      <Sidebar
+        onAddPin={handleAddPin}
+        onEnableMapPickMode={enableMapPickMode}
+        pins={pins}
+      />
+
+      <MapView
+        users={users}
+        myLocation={myLocation}
+        selfId={userId}
+        pins={pins}
+        onDeletePin={handleDeletePin}
+        onMapClick={handleMapClick}
+        isMapPickMode={isMapPickMode}
+      />
+
       <div className="room-container">
         <div className="room-blocks top-left">
           <button onClick={handleBack} className="primary-btn">
