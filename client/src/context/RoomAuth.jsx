@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import API from "../services/api";
+import { useToast } from "./ToastContext";
 
 const RoomAuthContext = createContext();
 
 export const RoomAuthProvider = ({ children }) => {
   const [rooms, setRooms] = useState([]);
+
+  const { showToast } = useToast();
 
   const createRoom = async (roomName, password) => {
     try {
@@ -30,10 +33,10 @@ export const RoomAuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Join room error:", err);
 
-      if (err.response?.data?.message) {
-        alert(err.response.data.message);
-      } else {
-        alert("Failed to join room");
+      if (err.response?.status !== 401 && err.response?.data?.message) {
+        showToast(err.response.data.message);
+      } else if (err.response?.status !== 401) {
+        showToast("Failed to join room");
       }
     }
   };
@@ -43,7 +46,7 @@ export const RoomAuthProvider = ({ children }) => {
       await API.post(`/rooms/${roomId}/leave`);
     } catch (err) {
       console.error("Leave room error:", err);
-      alert("Failed to leave room");
+      showToast("Failed to leave room");
     }
   };
 
