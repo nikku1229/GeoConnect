@@ -14,4 +14,25 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
+API.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      const errorMessage = error.response?.data?.message;
+
+      if (errorMessage === "Unauthorized" || errorMessage === "Invalid Token") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("username");
+
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 export default API;
