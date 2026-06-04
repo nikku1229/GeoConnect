@@ -1,6 +1,7 @@
 const Location = require("../models/Location");
 const User = require("../models/User");
 const Room = require("../models/Room");
+const Pin = require("../models/Pin");
 
 module.exports = (io) => {
   io.on("connection", (socket) => {
@@ -53,6 +54,12 @@ module.exports = (io) => {
             online: loc.userId.isOnline,
           })),
         );
+
+        // AFTER joining room, send existing pins
+        const existingPins = await Pin.find({ roomId })
+          .sort({ createdAt: -1 })
+          .lean();
+        socket.emit("all_pins", existingPins);
 
         io.to(roomId).emit("user_status", {
           userId,
@@ -142,7 +149,6 @@ module.exports = (io) => {
     });
 
     // LEAVE ROOM
-
     socket.on("leave_room", async ({ roomId, userId }) => {
       try {
         socket.leave(roomId);
@@ -203,6 +209,64 @@ module.exports = (io) => {
         });
       } catch (err) {
         console.error("Kick error:", err);
+      }
+    });
+
+    // NEW PIN CREATED (Broadcast to room)
+    socket.on("new_pin", async (data) => {
+      try {
+        const { roomId, pin } = data;
+
+        const existingPin = await Pin.findOne({
+          roomId,
+          userId: socket.userId,
+          latitude: pin.latitude,
+          longitude: pin.longitude,
+          createdAt: { $gt: new Date(Date.now() - 60000) }, // Last 1 minute
+        });
+
+        if (existingPin) {
+          return;
+        }
+
+        const newPin = await Pin.create({
+          roomId,
+          userId: socket.userId,
+          userName: socket.username,
+          comment: pin.comment,
+          latitude: pin.latitude,
+          longitude: pin.longitude,
+          locationName: pin.locationName || "",
+        });
+
+        // Broadcast to all in room including sender
+        io.to(roomId).emit("pin_added", {
+          ...newPin.toObject(),
+          isOwn: false,
+        });
+      } catch (err) {
+        console.error("New pin error:", err);
+      }
+    });
+
+    // PIN DELETED
+    socket.on("delete_pin", async ({ roomId, pinId }) => {
+      try {
+        const pin = await Pin.findById(pinId);
+
+        if (!pin) return;
+
+        // Check if user is creator
+        if (pin.userId.toString() !== socket.userId) {
+          socket.emit("pin_delete_error", { message: "Not your pin" });
+          return;
+        }
+
+        await Pin.deleteOne({ _id: pinId });
+
+        io.to(roomId).emit("pin_removed", { pinId });
+      } catch (err) {
+        console.error("Delete pin error:", err);
       }
     });
   });

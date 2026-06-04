@@ -5,9 +5,11 @@ const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const authRoutes = require("./routes/authRoutes");
 const roomRoutes = require("./routes/roomRoutes");
+const pinRoutes = require("./routes/pinRoutes");
 const passport = require("./config/passport");
 const session = require("express-session");
 const cleanupRooms = require("./cron/cleanupRooms");
+const cleanupPins = require("./cron/cleanupPins");
 const { globalLimiter } = require("./middleware/rateLimiter");
 
 dotenv.config();
@@ -24,6 +26,7 @@ connectDB();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
+app.use("/api/pins", pinRoutes);
 
 app.use(
   session({
@@ -37,6 +40,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(globalLimiter);
 cleanupRooms();
+cleanupPins();
 
 app.get("/", (req, res) => {
   res.send("GeoConnect API Running");
