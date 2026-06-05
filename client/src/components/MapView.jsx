@@ -27,6 +27,31 @@ const colors = [
   "#3C2A21",
 ];
 
+// Custom search marker icon
+const createSearchIcon = () => {
+  return L.divIcon({
+    html: `
+      <div style="
+        background: #ff9800;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid white;
+        box-shadow: 0 0 15px rgba(255, 152, 0, 0.8);
+        animation: pulse 1.5s infinite;
+      ">
+        <span style="font-size: 18px;">🔍</span>
+      </div>
+    `,
+    className: "search-marker",
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+  });
+};
+
 const createAvatarIcon = (name, color) => {
   const firstLetter = name?.charAt(0)?.toUpperCase() || "?";
   return L.divIcon({
@@ -53,11 +78,26 @@ const createAvatarIcon = (name, color) => {
   });
 };
 
-const AutoCenter = ({ users }) => {
+const AutoCenter = ({ users, sharedSearchLocation }) => {
   const map = useMap();
   const prevCount = useRef(0);
+  const prevSearch = useRef(null);
 
   useEffect(() => {
+    if (sharedSearchLocation) {
+      if (prevSearch.current !== sharedSearchLocation.location.name) {
+        map.setView(
+          [
+            sharedSearchLocation.location.lat,
+            sharedSearchLocation.location.lng,
+          ],
+          13,
+        );
+        prevSearch.current = sharedSearchLocation.location.name;
+      }
+      return;
+    }
+
     const coords = Object.values(users)
       .filter((u) => u.lat && u.lng)
       .map((u) => [u.lat, u.lng]);
@@ -67,7 +107,7 @@ const AutoCenter = ({ users }) => {
       map.fitBounds(coords, { padding: [100, 100] });
       prevCount.current = coords.length;
     }
-  }, [users, map]);
+  }, [users, map, sharedSearchLocation]);
 
   return null;
 };
@@ -105,15 +145,26 @@ const MapView = ({
   onDeletePin,
   onMapClick,
   isMapPickMode = false,
+  sharedSearchLocation = null,
 }) => {
   const markerRefs = useRef({});
+  const searchIcon = createSearchIcon();
 
   const firstUser = Object.values(users).find((u) => u.lat && u.lng);
-  const center = myLocation ||
+  const center = sharedSearchLocation?.location ||
+    myLocation ||
     (firstUser ? { lat: firstUser.lat, lng: firstUser.lng } : null) || {
       lat: 28.6139,
       lng: 77.209,
     };
+
+  let sharedDistance = null;
+  if (sharedSearchLocation && myLocation) {
+    sharedDistance = getDistance(myLocation, {
+      lat: sharedSearchLocation.location.lat,
+      lng: sharedSearchLocation.location.lng,
+    });
+  }
 
   useEffect(() => {
     Object.entries(users).forEach(([id, user]) => {
@@ -139,7 +190,7 @@ const MapView = ({
     <MapContainer
       className="map"
       center={center}
-      zoom={15}
+      zoom={sharedSearchLocation ? 20 : 15}
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
@@ -147,7 +198,7 @@ const MapView = ({
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
 
-      <AutoCenter users={users} />
+      <AutoCenter users={users} sharedSearchLocation={sharedSearchLocation} />
       <MapClickHandler isMapPickMode={isMapPickMode} onMapClick={onMapClick} />
 
       <MarkerClusterGroup
@@ -195,6 +246,31 @@ const MapView = ({
           onDoubleClick={onDeletePin}
         />
       ))}
+
+      {sharedSearchLocation && (
+        <Marker
+          position={[
+            sharedSearchLocation.location.lat,
+            sharedSearchLocation.location.lng,
+          ]}
+          icon={searchIcon}
+        >
+          <Tooltip permanent={false} direction="top" offset={[0, -20]}>
+            <div className="search-marker-tooltip">
+              <strong>Searched by: {sharedSearchLocation.searchedBy}</strong>
+              <br />
+              <span>{sharedSearchLocation.location.name.split(",")[0]}</span>
+              {sharedDistance && (
+                <>
+                  <br />
+                  <span>{sharedDistance} km from you</span>
+                </>
+              )}
+              <br />
+            </div>
+          </Tooltip>
+        </Marker>
+      )}
 
       {isMapPickMode && (
         <div className="map-pick-overlay">
