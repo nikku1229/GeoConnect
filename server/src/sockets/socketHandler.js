@@ -269,5 +269,31 @@ module.exports = (io) => {
         console.error("Delete pin error:", err);
       }
     });
+
+    socket.on("search_location", async (data) => {
+      try {
+        const { roomId, location, userId, username } = data;
+
+        // Broadcast to all users in room including sender
+        io.to(roomId).emit("location_searched", {
+          userId,
+          username,
+          location,
+          timestamp: new Date(),
+        });
+
+        // Auto clear after 10 seconds (optional)
+        setTimeout(() => {
+          io.to(roomId).emit("clear_searched_location", { userId });
+        }, 60000);
+      } catch (err) {
+        console.error("Search location error:", err);
+      }
+    });
+
+    // Clear search location manually
+    socket.on("clear_search_location", ({ roomId, userId }) => {
+      io.to(roomId).emit("clear_searched_location", { userId });
+    });
   });
 };
