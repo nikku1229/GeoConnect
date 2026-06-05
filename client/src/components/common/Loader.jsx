@@ -1,4 +1,4 @@
-import { useLoader } from "../context/LoaderContext";
+import { useLoader } from "../../context/LoaderContext";
 
 function Loader() {
   const { loader } = useLoader();

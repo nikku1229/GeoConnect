@@ -43,7 +43,7 @@ const PinMarker = ({ pin, isOwn, onDoubleClick }) => {
       <Tooltip permanent={false} direction="top" offset={[0, -20]}>
         <div className="pin-marker-comment-tooltip">
           <strong>
-            {pin.userName}
+            {pin.userName || pin.username || "Unknown"}
             {isOwn && <span> (You)</span>}
           </strong>
           <br />

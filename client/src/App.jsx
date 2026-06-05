@@ -4,7 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Room from "./pages/Room";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ErrorPage from "./pages/ErrorPage";

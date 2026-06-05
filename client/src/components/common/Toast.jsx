@@ -1,5 +1,5 @@
-import { useToast } from "../context/ToastContext";
-import AlertIcon from "../assets/AlertIcon.svg";
+import { useToast } from "../../context/ToastContext";
+import AlertIcon from "../../assets/AlertIcon.svg";
 
 function Toast() {
   const { toast } = useToast();

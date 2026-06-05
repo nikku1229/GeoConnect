@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRoomAuth } from "../context/RoomAuth";
-import { useToast } from "../context/ToastContext";
-import { getSocket } from "../socket/socket";
-import RoomUserIcon from "../assets/RoomUserIcon.svg";
-import DoubleArrowIcon from "../assets/DoubleArrowIcon.svg";
-import AlertIcon from "../assets/AlertIcon.svg";
+import { useRoomAuth } from "../../context/RoomAuth";
+import { useToast } from "../../context/ToastContext";
+import { getSocket } from "../../socket/socket";
+import RoomUserIcon from "../../assets/RoomUserIcon.svg";
+import DoubleArrowIcon from "../../assets/DoubleArrowIcon.svg";
+import AlertIcon from "../../assets/AlertIcon.svg";
 
 function RoomList() {
   const navigate = useNavigate();
@@ -20,8 +20,18 @@ function RoomList() {
       fetchRooms();
     });
 
+    socket.on("user_joined_room", () => {
+      fetchRooms();
+    });
+
+    socket.on("user_left_room", () => {
+      fetchRooms();
+    });
+
     return () => {
       socket.off("user_status");
+      socket.off("user_joined_room");
+      socket.off("user_left_room");
     };
   }, []);
 

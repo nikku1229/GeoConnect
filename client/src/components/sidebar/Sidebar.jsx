@@ -1,10 +1,10 @@
 import { useState } from "react";
-import AddPinModal from "./AddPinModal";
-import LeftToggleIcon from "../assets/LeftToggleIcon.svg";
-import LeftArrowIcon from "../assets/LeftArrowIcon.svg";
-import RightToggleIcon from "../assets/RightToggleIcon.svg";
-import PinIcon from "../assets/PinIcon.svg";
-import SearchIcon from "../assets/SearchIcon.svg";
+import AddPinModal from "./AddPinModal/AddPinModal";
+import LeftToggleIcon from "../../assets/LeftToggleIcon.svg";
+import RightToggleIcon from "../../assets/RightToggleIcon.svg";
+import LeftArrowIcon from "../../assets/LeftArrowIcon.svg";
+import PinIcon from "../../assets/PinIcon.svg";
+import SearchIcon from "../../assets/SearchIcon.svg";
 
 const Sidebar = ({
   onAddPin,
@@ -136,9 +136,12 @@ const Sidebar = ({
               <div className="search-result-info">
                 <div className="result-header">
                   <span>
-                    Shared by: <strong>{searchResult.searchedBy}</strong>
+                    Shared by:{" "}
+                    <strong>
+                      {searchResult.searchedBy || searchResult.username}
+                    </strong>
                   </span>
-                  {searchResult.searchedBy ===
+                  {(searchResult.searchedBy || searchResult.username) ===
                     localStorage.getItem("username") && (
                     <button className="clear-btn" onClick={onClearSearch}>
                       Clear

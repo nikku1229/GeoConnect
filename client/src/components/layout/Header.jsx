@@ -1,9 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../context/ToastContext";
-import LocationIcon from "../assets/LocationIcon.svg";
-import UserIcon from "../assets/UserIcon.svg";
-import OutIcon from "../assets/OutIcon.svg";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
+import LocationIcon from "../../assets/LocationIcon.svg"; // ✅ FIXED
+import UserIcon from "../../assets/UserIcon.svg"; // ✅ FIXED
+import OutIcon from "../../assets/OutIcon.svg"; // ✅ FIXED
 
 function Header() {
   const { user, logout } = useAuth();

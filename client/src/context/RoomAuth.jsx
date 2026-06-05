@@ -54,6 +54,7 @@ export const RoomAuthProvider = ({ children }) => {
     try {
       const res = await API.get("/rooms/myrooms");
       setRooms(res.data);
+      return res.data;
     } catch (err) {
       console.error("Error fetching rooms:", err);
     }
