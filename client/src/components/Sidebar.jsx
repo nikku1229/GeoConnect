@@ -138,8 +138,8 @@ const Sidebar = ({
                   <span>
                     Shared by: <strong>{searchResult.searchedBy}</strong>
                   </span>
-                  {searchResult.searchedBy ===
-                    localStorage.getItem("username") && (
+                  {searchResult.userId ===
+                    localStorage.getItem("userId") && (
                     <button className="clear-btn" onClick={onClearSearch}>
                       Clear
                     </button>
