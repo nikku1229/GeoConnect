@@ -4,11 +4,31 @@ import LeftToggleIcon from "../assets/LeftToggleIcon.svg";
 import LeftArrowIcon from "../assets/LeftArrowIcon.svg";
 import RightToggleIcon from "../assets/RightToggleIcon.svg";
 import PinIcon from "../assets/PinIcon.svg";
+import SearchIcon from "../assets/SearchIcon.svg";
 
-const Sidebar = ({ onAddPin, onEnableMapPickMode, onDeletePin, pins = [] }) => {
+const Sidebar = ({
+  onAddPin,
+  onEnableMapPickMode,
+  onDeletePin,
+  pins = [],
+  onSearchLocation,
+  searchResult,
+  searchDistance,
+  isSearching,
+  onClearSearch,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showSidebarFeatures, setShowSidebarFeatures] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setSearchLoading(true);
+    await onSearchLocation(searchQuery);
+    setSearchLoading(false);
+  };
 
   const fetchSidebar = () => {
     switch (showSidebarFeatures) {
@@ -74,12 +94,83 @@ const Sidebar = ({ onAddPin, onEnableMapPickMode, onDeletePin, pins = [] }) => {
           </div>
         );
 
+      case "search":
+        return (
+          <div className="comment-container">
+            <div className="map-pin-header">
+              <div className="backbtn">
+                <img
+                  src={LeftArrowIcon}
+                  alt="Back"
+                  onClick={() => setShowSidebarFeatures("")}
+                />
+              </div>
+              <h3>Search Location</h3>
+              <p>Find any place and see distance</p>
+            </div>
+
+            <div className="search-input-container">
+              <input
+                type="text"
+                placeholder="Search city, place, address..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+              />
+              <button
+                className="secondary-btn"
+                onClick={handleSearch}
+                disabled={searchLoading}
+              >
+                {searchLoading ? "Searching..." : "Search"}
+              </button>
+            </div>
+
+            {isSearching && (
+              <div className="searching-indicator">
+                <span>🔍 Searching for location...</span>
+              </div>
+            )}
+
+            {searchResult && (
+              <div className="search-result-info">
+                <div className="result-header">
+                  <span>
+                    Shared by: <strong>{searchResult.searchedBy}</strong>
+                  </span>
+                  {searchResult.userId ===
+                    localStorage.getItem("userId") && (
+                    <button className="clear-btn" onClick={onClearSearch}>
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="result-location">
+                  <p>{searchResult.location.name.split(",")[0]}</p>
+                </div>
+                {searchDistance && (
+                  <div className="result-distance">
+                    Distance from you: <strong>{searchDistance} km</strong>
+                  </div>
+                )}
+                <div className="result-note">
+                  This location will disappear after 1 minute
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
       default:
         return (
           <ul>
             <li onClick={() => setShowSidebarFeatures("comment")}>
               <img src={PinIcon} alt="Add" />
               Add Comment
+            </li>
+            <li onClick={() => setShowSidebarFeatures("search")}>
+              <img src={SearchIcon} alt="Search" />
+              Search Location
             </li>
           </ul>
         );
@@ -106,6 +197,7 @@ const Sidebar = ({ onAddPin, onEnableMapPickMode, onDeletePin, pins = [] }) => {
       </div>
 
       <AddPinModal
+        sidebarToggle={() => setIsOpen(false)}
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onAddPin={onAddPin}

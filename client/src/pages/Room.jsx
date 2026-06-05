@@ -42,6 +42,8 @@ const Room = () => {
 
   const [showUsers, setShowUsers] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [sharedSearchLocation, setSharedSearchLocation] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   const isCreator = creatorId && creatorId === userId;
   const watchIdRef = useRef(null);
@@ -162,6 +164,27 @@ const Room = () => {
       showToast("Pin removed");
     });
 
+    socket.on("location_searched", (data) => {
+      setSharedSearchLocation({
+        userId: data.userId,
+        searchedBy: data.username,
+        location: data.location,
+        timestamp: data.timestamp,
+      });
+      showToast(
+        `📍 ${data.username} searched: ${data.location.name.split(",")[0]}`,
+      );
+    });
+
+    socket.on("clear_searched_location", ({ userId }) => {
+      setSharedSearchLocation((prev) => {
+        if (prev && prev.userId === userId) {
+          return null;
+        }
+        return prev;
+      });
+    });
+
     return () => {
       if (!socketRef.current) return;
 
@@ -180,6 +203,8 @@ const Room = () => {
       socketRef.current.off("all_pins");
       socketRef.current.off("pin_added");
       socketRef.current.off("pin_removed");
+      socketRef.current.off("location_searched");
+      socketRef.current.off("clear_searched_location");
 
       disconnectSocket();
     };
@@ -241,6 +266,74 @@ const Room = () => {
     });
 
     setMessage("");
+  };
+
+  const handleSearchLocation = async (query) => {
+    setIsSearching(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+      );
+      const data = await res.json();
+
+      if (data && data.length > 0) {
+        const location = {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+          name: data[0].display_name,
+        };
+
+        // Emit to all users in room
+        if (socketRef.current && socketRef.current.connected) {
+          socketRef.current.emit("search_location", {
+            roomId,
+            location,
+            userId,
+            username,
+          });
+        }
+
+        // Also set locally
+        setSharedSearchLocation({
+          userId,
+          searchedBy: username,
+          location,
+          timestamp: new Date(),
+        });
+
+        showToast(`📍 Shared: ${location.name.split(",")[0]} with everyone`);
+      } else {
+        showToast("Location not found");
+      }
+    } catch (err) {
+      console.error("Search error:", err);
+      showToast("Search failed");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Add clear search function
+  const handleClearSearch = () => {
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit("clear_search_location", { roomId, userId });
+    }
+    setSharedSearchLocation(null);
+    showToast("Cleared searched location");
+  };
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return (R * c).toFixed(2);
   };
 
   const handleLeave = async () => {
@@ -386,6 +479,20 @@ const Room = () => {
         onEnableMapPickMode={enableMapPickMode}
         onDeletePin={handleDeletePin}
         pins={pins}
+        onSearchLocation={handleSearchLocation}
+        searchResult={sharedSearchLocation}
+        searchDistance={
+          sharedSearchLocation && myLocation
+            ? calculateDistance(
+                myLocation.lat,
+                myLocation.lng,
+                sharedSearchLocation.location.lat,
+                sharedSearchLocation.location.lng,
+              )
+            : null
+        }
+        isSearching={isSearching}
+        onClearSearch={handleClearSearch}
       />
 
       <MapView
@@ -396,6 +503,7 @@ const Room = () => {
         onDeletePin={handleDeletePin}
         onMapClick={handleMapClick}
         isMapPickMode={isMapPickMode}
+        sharedSearchLocation={sharedSearchLocation}
       />
 
       <div className="room-container">

@@ -69,7 +69,13 @@ const LocationSearch = ({ onSelect }) => {
 };
 
 // Main AddPinModal Component
-const AddPinModal = ({ isOpen, onClose, onAddPin, onEnableMapPickMode }) => {
+const AddPinModal = ({
+  sidebarToggle,
+  isOpen,
+  onClose,
+  onAddPin,
+  onEnableMapPickMode,
+}) => {
   const [comment, setComment] = useState("");
   const [location, setLocation] = useState(null);
   const [searchMode, setSearchMode] = useState(false);
@@ -125,6 +131,7 @@ const AddPinModal = ({ isOpen, onClose, onAddPin, onEnableMapPickMode }) => {
   };
 
   const handlePickOnMap = () => {
+    sidebarToggle();
     if (!comment.trim()) {
       setError("Please enter a comment first before picking on map");
       return;
